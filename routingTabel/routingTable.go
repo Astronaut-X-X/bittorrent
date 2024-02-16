@@ -38,21 +38,19 @@ func NewRoutingTable() *RoutingTable {
 	return table
 }
 
-func (r *RoutingTable) Add(id string, address net.Addr, port int) {
+func (r *RoutingTable) Add(id string, address string, port int) {
+	r.L.Lock()
 	peer := NewPeer(id, address, port)
-
-	i := GetBucketIndex(r.LocalId, id)
-
-	r.Bucket[i].Add(peer, r.pingPeer)
+	bucket := r.GetBucket(r.LocalId, id)
+	bucket.Add(peer, r.pingPeer)
+	r.L.Unlock()
 }
 
-func (r *RoutingTable) Get(id string) []*Peer {
-	i := GetBucketIndex(r.LocalId, id)
-
-	return r.Bucket[i].GetPeers()
+func (r *RoutingTable) GetPeers(id string) []*Peer {
+	return r.GetBucket(r.LocalId, id).GetPeers()
 }
 
-func GetBucketIndex(x, y string) int {
+func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	distance := XOR(x, y)
 	i := 0
 	for distance > 0 {
@@ -60,7 +58,7 @@ func GetBucketIndex(x, y string) int {
 		i++
 	}
 
-	return i
+	return r.Bucket[i]
 }
 
 func XOR(x, y string) int64 {
