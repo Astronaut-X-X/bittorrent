@@ -1,9 +1,5 @@
 package routingTable
 
-import (
-	"net"
-)
-
 type Bucket struct {
 	Size  int
 	Len   int
@@ -18,7 +14,7 @@ func NewBucket(size int) *Bucket {
 	}
 }
 
-func (b *Bucket) Add(peer *Peer, pingPeer func(net.Addr, int) bool) {
+func (b *Bucket) Add(peer *Peer, pingPeer func(string, int) bool) {
 	if b.Len < b.Size {
 		b.Peers = append(b.Peers, peer)
 		b.Len++

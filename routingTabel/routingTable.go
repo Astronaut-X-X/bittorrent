@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"net"
 	"sync"
 )
 
@@ -22,7 +21,7 @@ type RoutingTable struct {
 	Bucket  []*Bucket
 	LocalId string
 
-	pingPeer func(net.Addr, int) bool
+	pingPeer func(string, int) bool
 }
 
 func NewRoutingTable() *RoutingTable {

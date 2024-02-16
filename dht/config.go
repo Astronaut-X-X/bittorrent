@@ -10,7 +10,7 @@ type config struct {
 	PrimeNodes []string
 }
 
-func defualtConfig() *config {
+func DefualtConfig() *config {
 	return &config{
 		Address: "localhost:6881",
 		Ip:      "localhost",

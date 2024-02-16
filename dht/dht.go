@@ -107,7 +107,7 @@ func (d *DHT) handleResponse(m *Message) {
 
 func (d *DHT) sendPrimeNodes() {
 
-	for _, node := range defualtConfig().PrimeNodes {
+	for _, node := range DefualtConfig().PrimeNodes {
 
 		addr, err := net.ResolveUDPAddr("udp", node)
 		if err != nil {
