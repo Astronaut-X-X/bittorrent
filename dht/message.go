@@ -4,26 +4,26 @@ import "encoding/json"
 
 type Message struct {
 	T string `json:"t"`
-	Y string `json:"y"`
-	Q string `json:"q"`
-	A *A     `json:"a"`
-	R *R     `json:"r"`
+	Y string `json:"y,omitempty"`
+	Q string `json:"q,omitempty"`
+	A *A     `json:"a,omitempty"`
+	R *R     `json:"r,omitempty"`
 }
 
 type A struct {
 	Id          string `json:"id"`
-	Target      string `json:"targer"`
-	InfoHash    string `json:"info_hash"`
-	ImpliedPort int    `json:"implied_port"`
-	Port        int    `json:"port"`
-	Token       string `json:"token"`
+	Target      string `json:"targer,omitempty"`
+	InfoHash    string `json:"info_hash,omitempty"`
+	ImpliedPort int    `json:"implied_port,omitempty"`
+	Port        int    `json:"port,omitempty"`
+	Token       string `json:"token,omitempty"`
 }
 
 type R struct {
 	Id     string   `json:"id"`
-	Nodes  string   `json:"nodes"`
-	Token  string   `json:"token"`
-	Values []string `json:"values"`
+	Nodes  string   `json:"nodes,omitempty"`
+	Token  string   `json:"token,omitempty"`
+	Values []string `json:"values,omitempty"`
 }
 
 func UnmarshalMessage(data []byte) *Message {
