@@ -67,5 +67,5 @@ func MarshalMessage(msg *Message) []byte {
 
 	fmt.Println(map_message)
 
-	return bencode.Encode(msg)
+	return bencode.Encode(map_message)
 }
