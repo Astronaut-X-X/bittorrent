@@ -147,6 +147,9 @@ func (d *DHT) sendPrimeNodes() {
 		}
 
 		msg_byte := MarshalMessage(message)
+
+		fmt.Println(string(msg_byte))
+
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
