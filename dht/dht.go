@@ -135,6 +135,9 @@ func (d *DHT) sendPrimeNodes() {
 			continue
 		}
 
+		fmt.Println(message)
+		fmt.Println(msg_byte)
+
 		d.Conn.WriteToUDP(msg_byte, addr)
 	}
 
