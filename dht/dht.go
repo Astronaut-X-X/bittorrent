@@ -115,6 +115,8 @@ func (d *DHT) sendPrimeNodes() {
 			continue
 		}
 
+		fmt.Println(addr.IP, addr.Port)
+
 		message := &Message{
 			T: rt.RandLocalId(),
 			Y: "q",
