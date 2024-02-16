@@ -119,13 +119,22 @@ func (d *DHT) sendPrimeNodes() {
 
 		fmt.Println(addr.IP, addr.Port)
 
+		// message := &Message{
+		// 	T: rt.RandLocalId(),
+		// 	Y: "q",
+		// 	Q: "find_node",
+		// 	A: &A{
+		// 		Id:     d.routingTable.LocalId,
+		// 		Target: rt.RandLocalId(),
+		// 	},
+		// }
+
 		message := &Message{
 			T: rt.RandLocalId(),
 			Y: "q",
-			Q: "find_node",
+			Q: "ping",
 			A: &A{
-				Id:     d.routingTable.LocalId,
-				Target: rt.RandLocalId(),
+				Id: d.routingTable.LocalId,
 			},
 		}
 
@@ -137,7 +146,7 @@ func (d *DHT) sendPrimeNodes() {
 
 		fmt.Println(message)
 		fmt.Println(message.A)
-		fmt.Println(msg_byte)
+		fmt.Println(string(msg_byte))
 
 		d.Conn.WriteToUDP(msg_byte, addr)
 	}
