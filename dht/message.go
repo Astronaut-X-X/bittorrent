@@ -4,6 +4,7 @@ import (
 	"bittorrent/bencode"
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 type Message struct {
@@ -39,6 +40,9 @@ func UnmarshalMessage(data []byte) (*Message, error) {
 	}
 
 	msg_byte, err := json.Marshal(msg_)
+	if err != nil {
+		return nil, err
+	}
 	if err := json.Unmarshal(msg_byte, msg); err != nil {
 		return nil, err
 	}
@@ -47,5 +51,16 @@ func UnmarshalMessage(data []byte) (*Message, error) {
 }
 
 func MarshalMessage(msg *Message) []byte {
+	byte_message, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+	var map_message map[string]interface{}
+	if err := json.Unmarshal(byte_message, &map_message); err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
 	return bencode.Encode(msg)
 }
