@@ -56,11 +56,16 @@ func MarshalMessage(msg *Message) []byte {
 		fmt.Println(err.Error())
 		return nil
 	}
+
+	fmt.Println(string(byte_message))
+
 	var map_message map[string]interface{}
 	if err := json.Unmarshal(byte_message, &map_message); err != nil {
 		fmt.Println(err.Error())
 		return nil
 	}
+
+	fmt.Println(map_message)
 
 	return bencode.Encode(msg)
 }
