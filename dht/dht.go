@@ -150,14 +150,11 @@ func (d *DHT) sendPrimeNodes() {
 
 		fmt.Println(string(msg_byte))
 
+		n, err := d.Conn.WriteToUDP(msg_byte, addr)
 		if err != nil {
 			fmt.Println(err.Error())
-			continue
 		}
-
-		fmt.Println(string(msg_byte))
-
-		d.Conn.WriteToUDP(msg_byte, addr)
+		fmt.Println("send :", n)
 	}
 
 }
