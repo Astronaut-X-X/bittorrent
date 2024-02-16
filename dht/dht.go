@@ -76,7 +76,11 @@ out:
 }
 
 func (d *DHT) process(addr *net.UDPAddr, data []byte) {
-	m := UnmarshalMessage(data)
+	m, err := UnmarshalMessage(data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	fmt.Println(m)
 
@@ -142,7 +146,7 @@ func (d *DHT) sendPrimeNodes() {
 			},
 		}
 
-		msg_byte, err := MarshalMessage(message)
+		msg_byte := MarshalMessage(message)
 		if err != nil {
 			fmt.Println(err.Error())
 			continue

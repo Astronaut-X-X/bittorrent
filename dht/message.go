@@ -1,6 +1,10 @@
 package dht
 
-import "encoding/json"
+import (
+	"bittorrent/bencode"
+	"bytes"
+	"encoding/json"
+)
 
 type Message struct {
 	T string `json:"t"`
@@ -26,21 +30,22 @@ type R struct {
 	Values []string `json:"values,omitempty"`
 }
 
-func UnmarshalMessage(data []byte) *Message {
+func UnmarshalMessage(data []byte) (*Message, error) {
 	msg := &Message{}
 
-	if err := json.Unmarshal(data, msg); err != nil {
-		return nil
-	}
-
-	return msg
-}
-
-func MarshalMessage(msg *Message) ([]byte, error) {
-	data, err := json.Marshal(msg)
+	msg_, err := bencode.Decode(bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	msg_byte, err := json.Marshal(msg_)
+	if err := json.Unmarshal(msg_byte, msg); err != nil {
+		return nil, err
+	}
+
+	return msg, nil
+}
+
+func MarshalMessage(msg *Message) []byte {
+	return bencode.Encode(msg)
 }
