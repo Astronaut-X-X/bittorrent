@@ -52,6 +52,8 @@ func (d *DHT) Stop() {
 func (d *DHT) receiving() {
 	buffer := make([]byte, 1024)
 
+	fmt.Println("receiving start")
+
 out:
 	for {
 		select {
@@ -69,6 +71,8 @@ out:
 			go d.process(addr, buffer[:n])
 		}
 	}
+
+	fmt.Println("receiving done")
 }
 
 func (d *DHT) process(addr *net.UDPAddr, data []byte) {
