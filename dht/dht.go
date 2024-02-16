@@ -37,8 +37,8 @@ func NewDHT(c *config) (*DHT, error) {
 }
 
 func (d *DHT) Run() {
+	go d.sendPrimeNodes()
 	d.receiving()
-	d.sendPrimeNodes()
 }
 
 func (d *DHT) Stop() {
