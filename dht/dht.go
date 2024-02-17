@@ -127,24 +127,24 @@ func (d *DHT) sendPrimeNodes() {
 
 		fmt.Println(addr.IP, addr.Port)
 
-		// message := &Message{
-		// 	T: rt.RandLocalId(),
-		// 	Y: "q",
-		// 	Q: "find_node",
-		// 	A: &A{
-		// 		Id:     d.routingTable.LocalId,
-		// 		Target: rt.RandLocalId(),
-		// 	},
-		// }
-
 		message := &Message{
 			T: rt.RandLocalId(),
 			Y: "q",
-			Q: "ping",
+			Q: "find_node",
 			A: &A{
-				Id: d.routingTable.LocalId,
+				Id:     d.routingTable.LocalId,
+				Target: rt.RandLocalId(),
 			},
 		}
+
+		// message := &Message{
+		// 	T: rt.RandLocalId(),
+		// 	Y: "q",
+		// 	Q: "ping",
+		// 	A: &A{
+		// 		Id: d.routingTable.LocalId,
+		// 	},
+		// }
 
 		msg_byte := MarshalMessage(message)
 

@@ -11,9 +11,10 @@ type config struct {
 }
 
 func DefualtConfig() *config {
+
 	return &config{
-		Address: "localhost:6881",
-		Ip:      "localhost",
+		Address: ":6881",
+		Ip:      "",
 		Port:    6881,
 
 		ReadBuffer: 1024,
