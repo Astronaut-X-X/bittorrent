@@ -1,18 +1,15 @@
 package routingTable
 
 import (
-	"crypto/rand"
-	"crypto/sha1"
-	"encoding/hex"
-	"fmt"
-	"io"
-	"math/big"
+	"bittorrent/utils"
 	"sync"
+	"time"
 )
 
 const (
-	TableSize  = 20
-	BucketSize = 8
+	TableSize   = 20
+	BucketSize  = 8
+	RefreshTime = time.Minute * 15
 )
 
 type RoutingTable struct {
@@ -27,7 +24,7 @@ type RoutingTable struct {
 func NewRoutingTable() *RoutingTable {
 	table := &RoutingTable{
 		Bucket:  make([]*Bucket, 0, TableSize),
-		LocalId: RandLocalId(),
+		LocalId: utils.RandomID(),
 	}
 
 	for i := TableSize; i < 0; i++ {
@@ -37,9 +34,9 @@ func NewRoutingTable() *RoutingTable {
 	return table
 }
 
-func (r *RoutingTable) Add(id string, address string, port int) {
+func (r *RoutingTable) Add(id string, address string, ip string, port int) {
 	r.L.Lock()
-	peer := NewPeer(id, address, port)
+	peer := NewPeer(id, address, ip, port)
 	bucket := r.GetBucket(r.LocalId, id)
 	bucket.Add(peer, r.pingPeer)
 	r.L.Unlock()
@@ -50,7 +47,7 @@ func (r *RoutingTable) GetPeers(id string) []*Peer {
 }
 
 func (r *RoutingTable) GetBucket(x, y string) *Bucket {
-	distance := XOR(x, y)
+	distance := utils.XOR(x, y)
 	i := 0
 	for distance > 0 {
 		distance = distance << 1
@@ -60,26 +57,21 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	return r.Bucket[i]
 }
 
-func XOR(x, y string) int64 {
-	a := new(big.Int)
-	b := new(big.Int)
+func (r *RoutingTable) RunTimeRefresh() {
 
-	a.SetString(x, 16)
-	b.SetString(y, 16)
+	t := time.NewTicker(RefreshTime)
 
-	return new(big.Int).Xor(a, b).Int64()
-}
+	for {
+		select {
+		case <-t.C:
 
-func RandLocalId() string {
-	randomData := make([]byte, 20)
-	if _, err := io.ReadFull(rand.Reader, randomData); err != nil {
-		fmt.Println(err.Error())
-		return ""
+		}
 	}
 
-	hasher := sha1.New()
-	hasher.Write(randomData)
-	sha1Hash := hasher.Sum(nil)
+}
 
-	return hex.EncodeToString(sha1Hash)
+func (r *RoutingTable) RefreshBucket(bucket *Bucket, ping) {
+	for _, peer := range bucket.Peers {
+
+	}
 }

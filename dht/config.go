@@ -17,7 +17,7 @@ func DefualtConfig() *config {
 		Ip:      "",
 		Port:    6881,
 
-		ReadBuffer: 1024,
+		ReadBuffer: 10240,
 
 		PrimeNodes: []string{
 			"router.bittorrent.com:6881",

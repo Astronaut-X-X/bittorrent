@@ -8,12 +8,13 @@ type Peer struct {
 	Id string
 
 	Address string
+	Ip      string
 	Port    int
 
 	AddTime time.Time
 }
 
-func NewPeer(id string, address string, port int) *Peer {
+func NewPeer(id string, address string, ip string, port int) *Peer {
 	return &Peer{
 		Id:      id,
 		Address: address,
