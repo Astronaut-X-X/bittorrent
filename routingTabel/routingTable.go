@@ -2,6 +2,8 @@ package routingTable
 
 import (
 	"bittorrent/utils"
+	"context"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -15,10 +17,12 @@ const (
 type RoutingTable struct {
 	L sync.Locker
 
+	context context.Context
+
 	Bucket  []*Bucket
 	LocalId string
 
-	pingPeer func(string, int) bool
+	pingPeer func(addr string) bool
 }
 
 func NewRoutingTable() *RoutingTable {
@@ -27,8 +31,9 @@ func NewRoutingTable() *RoutingTable {
 		LocalId: utils.RandomID(),
 	}
 
-	for i := TableSize; i < 0; i++ {
-		table.Bucket[i] = NewBucket(BucketSize)
+	for i := 0; i < TableSize; i++ {
+		n := (i + 1) * (4 + 1*2)
+		table.Bucket[i] = NewBucket(n)
 	}
 
 	return table
@@ -40,10 +45,6 @@ func (r *RoutingTable) Add(id string, address string, ip string, port int) {
 	bucket := r.GetBucket(r.LocalId, id)
 	bucket.Add(peer, r.pingPeer)
 	r.L.Unlock()
-}
-
-func (r *RoutingTable) GetPeers(id string) []*Peer {
-	return r.GetBucket(r.LocalId, id).GetPeers()
 }
 
 func (r *RoutingTable) GetBucket(x, y string) *Bucket {
@@ -58,20 +59,26 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 }
 
 func (r *RoutingTable) RunTimeRefresh() {
-
 	t := time.NewTicker(RefreshTime)
-
+out:
 	for {
 		select {
+		case <-r.context.Done():
+			fmt.Println("[RunTimeRefresh] done")
+			break out
 		case <-t.C:
-
+			r.RefreshAllBucket()
 		}
 	}
 
 }
 
-func (r *RoutingTable) RefreshBucket(bucket *Bucket, ping) {
-	for _, peer := range bucket.Peers {
-
+func (r *RoutingTable) RefreshAllBucket() {
+	for _, bucket := range r.Bucket {
+		bucket.RefreshBucket(r.pingPeer)
 	}
+}
+
+func (r *RoutingTable) SetPingPeer(pingPeer func(addr string) bool) {
+	r.pingPeer = pingPeer
 }

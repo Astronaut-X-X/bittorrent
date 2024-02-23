@@ -1,40 +1,46 @@
 package routingTable
 
+import "container/list"
+
 type Bucket struct {
 	Size  int
 	Len   int
-	Peers []*Peer
+	Peers *list.List
 }
 
 func NewBucket(size int) *Bucket {
 	return &Bucket{
 		Size:  size,
 		Len:   0,
-		Peers: make([]*Peer, 0, size),
+		Peers: list.New(),
 	}
 }
 
-func (b *Bucket) Add(peer *Peer, pingPeer func(string, int) bool) {
+func (b *Bucket) Add(peer *Peer, pingPeer func(string) bool) {
 	if b.Len < b.Size {
-		b.Peers = append(b.Peers, peer)
+		b.Peers.PushBack(peer)
 		b.Len++
-		return
+	} else {
+		b.RefreshBucket(pingPeer)
+		b.Peers.PushBack(peer)
+		if b.Len >= b.Size {
+			b.Peers.Remove(b.Peers.Front())
+			b.Len--
+		}
 	}
+}
 
-	// TODO AddTime
-	for i, peer := range b.Peers {
-		if pingPeer == nil {
+func (b *Bucket) RefreshBucket(pingPeer func(addr string) bool) {
+	node := b.Peers.Front()
+	for node != nil {
+		peer := node.Value.(*Peer)
+		if pingPeer(peer.Address) {
+			node = node.Next()
 			continue
 		}
-		if ok := pingPeer(peer.Address, peer.Port); !ok {
-			b.Peers[i] = peer
-			return
-		}
-
-		b.Peers[0] = peer
+		pre := node
+		node = node.Next()
+		b.Peers.Remove(pre)
+		b.Len--
 	}
-}
-
-func (b *Bucket) GetPeers() []*Peer {
-	return b.Peers
 }

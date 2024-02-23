@@ -35,7 +35,12 @@ func NewDHT(c *config) (*DHT, error) {
 	dht.Conn.SetReadBuffer(c.ReadBuffer)
 	dht.config = c
 	dht.tm = NewTransactionManager()
+
 	dht.routingTable = rt.NewRoutingTable()
+	dht.routingTable.SetPingPeer(func(addr string) bool {
+		return <-Ping(dht, addr)
+	})
+
 	dht.context, dht.cancel = context.WithCancel(context.Background())
 
 	return dht, nil
@@ -122,7 +127,7 @@ func (d *DHT) process(addr *net.UDPAddr, data []byte) {
 
 	switch m.Y {
 	case "q":
-		handleQuery(d, addr, m)
+		handleQuery(d, m, addr)
 	case "r":
 		handleResponse(d, m)
 	}
