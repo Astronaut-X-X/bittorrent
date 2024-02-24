@@ -5,8 +5,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	rt "bittorrent/routingTabel"
+)
+
+var (
+	_logFile *os.File
 )
 
 type DHT struct {
@@ -19,10 +26,13 @@ type DHT struct {
 
 	tm           *TransactionManager
 	routingTable *rt.RoutingTable
+
+	log *log.Logger
 }
 
 func NewDHT(c *config) (*DHT, error) {
 	dht := &DHT{}
+	dht.initLog()
 
 	addr, err := net.ResolveUDPAddr("udp", c.Address)
 	if err != nil {
@@ -49,8 +59,15 @@ func NewDHT(c *config) (*DHT, error) {
 
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
-	d.receiving()
+	go d.receiving()
 
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	<-stop
+
+	fmt.Println("正在关闭HTTP服务器...")
+	d.Stop()
 }
 
 func (d *DHT) Stop() {
@@ -59,6 +76,19 @@ func (d *DHT) Stop() {
 	if d.Conn != nil {
 		d.Conn.Close()
 	}
+	if _logFile != nil {
+		_logFile.Sync()
+		_logFile.Close()
+	}
+}
+
+func (d *DHT) initLog() {
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("无法打开日志文件: ", err)
+	}
+	_logFile = logFile
+	d.log = log.New(logFile, "", log.LstdFlags)
 }
 
 func (d *DHT) sendPrimeNodes() {
@@ -112,7 +142,7 @@ out:
 				continue
 			}
 
-			log.Println(string(buffer[:n]))
+			d.log.Println("[receive]", buffer[:n])
 
 			go d.process(addr, buffer[:n])
 		}
