@@ -3,7 +3,6 @@ package dht
 import (
 	"bittorrent/bencode"
 	"bytes"
-	"encoding/json"
 	"fmt"
 )
 
@@ -48,33 +47,131 @@ func DecodeMessage(data []byte) (*Message, error) {
 		return nil, err
 	}
 
-	info_json, err := json.Marshal(info)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-
-	msg := &Message{}
-	if err := json.Unmarshal(info_json, msg); err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-
+	msg := mapToMessage(info.(map[string]interface{}))
 	return msg, nil
 }
 
 func EncodeMessage(msg *Message) []byte {
-	msg_json, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
+	msgMap := messageToMap(msg)
+	return bencode.Encode(msgMap)
+}
 
-	var msg_map map[string]interface{}
-	if err := json.Unmarshal(msg_json, &msg_map); err != nil {
-		fmt.Println(err.Error())
-		return nil
+func messageToMap(msg *Message) map[string]interface{} {
+	msgMap := map[string]interface{}{}
+	if msg.T != "" {
+		msgMap["t"] = msg.T
 	}
+	if msg.Y != "" {
+		msgMap["y"] = msg.Y
+	}
+	if msg.Q != "" {
+		msgMap["q"] = msg.Q
+	}
+	if msg.A != nil {
+		msgMap["a"] = aToMap(msg.A)
+	}
+	if msg.R != nil {
+		msgMap["r"] = rToMap(msg.R)
+	}
+	return msgMap
+}
 
-	return bencode.Encode(msg_map)
+func mapToMessage(msgMap map[string]interface{}) *Message {
+	msg := &Message{}
+	if msgMap["t"] != nil {
+		msg.T = msgMap["t"].(string)
+	}
+	if msgMap["y"] != nil {
+		msg.Y = msgMap["y"].(string)
+	}
+	if msgMap["q"] != nil {
+		msg.Q = msgMap["q"].(string)
+	}
+	if msgMap["a"] != nil {
+		msg.A = mapToA(msgMap["a"].(map[string]interface{}))
+	}
+	if msgMap["r"] != nil {
+		msg.R = mapToR(msgMap["r"].(map[string]interface{}))
+	}
+	return msg
+}
+
+func aToMap(A *A) map[string]interface{} {
+	aMap := map[string]interface{}{}
+	if A.Id != "" {
+		aMap["id"] = A.Id
+	}
+	if A.InfoHash != "" {
+		aMap["info_hash"] = A.InfoHash
+	}
+	if A.Target != "" {
+		aMap["targer"] = A.Target
+	}
+	if A.ImpliedPort != 0 {
+		aMap["implied_port"] = A.ImpliedPort
+	}
+	if A.Port != 0 {
+		aMap["port"] = A.Port
+	}
+	if A.Token != "" {
+		aMap["token"] = A.Token
+	}
+	return aMap
+}
+
+func mapToA(aMap map[string]interface{}) *A {
+	A := &A{}
+	if aMap["id"] != nil {
+		A.Id = aMap["id"].(string)
+	}
+	if aMap["info_hash"] != nil {
+		A.InfoHash = aMap["info_hash"].(string)
+	}
+	if aMap["targer"] != nil {
+		A.Target = aMap["targer"].(string)
+	}
+	if aMap["implied_port"] != nil {
+		A.ImpliedPort = aMap["implied_port"].(int)
+	}
+	if aMap["port"] != nil {
+		A.Port = aMap["port"].(int)
+	}
+	if aMap["token"] != nil {
+		A.Token = aMap["token"].(string)
+	}
+	return A
+}
+
+func rToMap(R *R) map[string]interface{} {
+	rMap := map[string]interface{}{}
+	if R.Id != "" {
+		rMap["id"] = R.Id
+	}
+	if R.Nodes != "" {
+		rMap["nodes"] = R.Nodes
+	}
+	if R.Token != "" {
+		rMap["token"] = R.Token
+	}
+	if len(R.Values) != 0 {
+		rMap["values"] = R.Values
+	}
+	return rMap
+}
+
+func mapToR(rMap map[string]interface{}) *R {
+	R := &R{}
+	if rMap["id"] != nil {
+		R.Id = rMap["id"].(string)
+	}
+	if rMap["nodes"] != nil {
+		R.Nodes = rMap["nodes"].(string)
+	}
+	if rMap["token"] != nil {
+		R.Token = rMap["token"].(string)
+	}
+	if rMap["values"] != nil {
+		R.Values = rMap["values"].([]string)
+	}
+	return R
 }
