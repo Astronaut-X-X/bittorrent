@@ -1,10 +1,16 @@
+package utils
 
-func parseIp() {
-	addr, err := net.ResolveUDPAddr("udp", node)
+import (
+	"fmt"
+	"net"
+)
+
+func parseIp(addr string) {
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		fmt.Println(err.Error())
-		continue
+		return
 	}
 
-	fmt.Println(addr.IP, addr.Port)
+	fmt.Println(udpAddr.IP, udpAddr.Port)
 }

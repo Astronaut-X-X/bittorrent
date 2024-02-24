@@ -27,7 +27,7 @@ type RoutingTable struct {
 
 func NewRoutingTable() *RoutingTable {
 	table := &RoutingTable{
-		Bucket:  make([]*Bucket, 0, TableSize),
+		Bucket:  make([]*Bucket, TableSize),
 		LocalId: utils.RandomID(),
 	}
 
