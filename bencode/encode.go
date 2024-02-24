@@ -2,6 +2,7 @@ package bencode
 
 import (
 	"bytes"
+	"log"
 	"reflect"
 	"strconv"
 )
@@ -44,7 +45,9 @@ func (b *buffer) encodeUint(v uint64) {
 }
 
 func (b *buffer) encodeString(v string) {
+	log.Println("[encodeString]", strconv.Itoa(len(v)))
 	b.WriteString(strconv.Itoa(len(v)))
+	log.Println("[encodeString]", v)
 	b.WriteByte(':')
 	b.WriteString(v)
 }
