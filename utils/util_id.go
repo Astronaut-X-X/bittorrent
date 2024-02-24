@@ -10,7 +10,7 @@ import (
 )
 
 func RandomID() string {
-	randomData := make([]byte, 10)
+	randomData := make([]byte, 20)
 	if _, err := io.ReadFull(rand.Reader, randomData); err != nil {
 		fmt.Println(err.Error())
 		return ""
@@ -20,7 +20,7 @@ func RandomID() string {
 	hasher.Write(randomData)
 	sha1Hash := hasher.Sum(nil)
 
-	return hex.EncodeToString(sha1Hash)
+	return string(sha1Hash)
 }
 
 func RandomToken() string {
