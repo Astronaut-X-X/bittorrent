@@ -8,8 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	rt "bittorrent/routingTabel"
+	"bittorrent/utils"
 )
 
 var (
@@ -60,6 +62,7 @@ func NewDHT(c *config) (*DHT, error) {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
+	go d.getPeers()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -114,7 +117,7 @@ func (d *DHT) sendPrimeNodes() {
 		// }
 
 		msg := &Message{
-			T: rt.NewRoutingTable().LocalId,
+			T: utils.RandomT(),
 			Y: "q",
 			Q: "ping",
 			A: &A{
@@ -125,6 +128,40 @@ func (d *DHT) sendPrimeNodes() {
 		sendMessage(d, msg, addr)
 	}
 
+}
+
+func (d *DHT) getPeers() {
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
+	for {
+
+		select {
+		case <-d.context.Done():
+		case <-t.C:
+			target := utils.RandomT()
+			peers := d.routingTable.GetPeers(target)
+			for _, peer := range peers {
+				addr, err := net.ResolveUDPAddr("udp", peer.Address)
+				if err != nil {
+					fmt.Println(err.Error())
+					continue
+				}
+
+				msg := &Message{
+					T: utils.RandomT(),
+					Y: "q",
+					Q: "find_node",
+					A: &A{
+						Id:     d.routingTable.LocalId,
+						Target: utils.RandomT(),
+					},
+				}
+
+				sendMessage(d, msg, addr)
+			}
+			t.Reset(time.Second)
+		}
+	}
 }
 
 func (d *DHT) receiving() {
