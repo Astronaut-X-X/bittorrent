@@ -18,6 +18,8 @@ func TestEncode(t *testing.T) {
 		{"1", args{v: "hello"}, []byte("5:hello")},
 		{"2", args{v: []interface{}{100, "hello"}}, []byte("li100e5:helloe")},
 		{"3", args{v: map[string]interface{}{"hello": 100}}, []byte("d5:helloi100ee")},
+		{"4", args{v: string([]byte{97, 97, 97, 97, 97, 97, 97, 97, 97, 97})}, []byte("10:aaaaaaaaaa")},
+		{"5", args{v: "aaaaaaaaaa"}, []byte("10:aaaaaaaaaa")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

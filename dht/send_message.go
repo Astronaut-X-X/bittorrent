@@ -10,6 +10,7 @@ import (
 func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
 	msg_byte := EncodeMessage(msg)
 
+	log.Println(msg.T)
 	log.Println(string(msg_byte))
 
 	n, err := d.Conn.WriteToUDP(msg_byte, addr)
