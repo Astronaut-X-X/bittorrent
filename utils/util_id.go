@@ -10,7 +10,7 @@ import (
 )
 
 func RandomID() string {
-	randomData := make([]byte, 20)
+	randomData := make([]byte, 10)
 	if _, err := io.ReadFull(rand.Reader, randomData); err != nil {
 		fmt.Println(err.Error())
 		return ""
