@@ -7,7 +7,7 @@ import (
 type Peer struct {
 	Id string
 
-	Address string
+	Address string // "ip:port"
 	Ip      string
 	Port    int
 

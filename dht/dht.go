@@ -3,6 +3,7 @@ package dht
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 
 	rt "bittorrent/routingTabel"
@@ -97,7 +98,7 @@ func (d *DHT) sendPrimeNodes() {
 }
 
 func (d *DHT) receiving() {
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, d.config.ReadBuffer)
 
 out:
 	for {
@@ -110,6 +111,8 @@ out:
 				fmt.Printf("Error receiving data: %v\n", err)
 				continue
 			}
+
+			log.Println(string(buffer[:n]))
 
 			go d.process(addr, buffer[:n])
 		}

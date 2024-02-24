@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TableSize   = 20
+	TableSize   = 160
 	BucketSize  = 8
 	RefreshTime = time.Minute * 15
 )
@@ -56,6 +56,11 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	}
 
 	return r.Bucket[i]
+}
+
+func (r *RoutingTable) GetPeers(x string) []*Peer {
+	bucket := r.GetBucket(r.LocalId, x)
+	return bucket.GetPeers()
 }
 
 func (r *RoutingTable) RunTimeRefresh() {

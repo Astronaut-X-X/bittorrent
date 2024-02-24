@@ -23,6 +23,10 @@ func RandomID() string {
 	return hex.EncodeToString(sha1Hash)
 }
 
+func RandomToken() string {
+	return RandomID()
+}
+
 func RandomT() string {
 	return RandomID()
 }
@@ -35,4 +39,12 @@ func XOR(x, y string) int64 {
 	b.SetString(y, 16)
 
 	return new(big.Int).Xor(a, b).Int64()
+}
+
+func ParseIdToByte(id string) []byte {
+	b, err := hex.DecodeString(id)
+	if err != nil {
+		return make([]byte, 20)
+	}
+	return b
 }

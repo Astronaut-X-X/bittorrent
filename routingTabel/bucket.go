@@ -44,3 +44,15 @@ func (b *Bucket) RefreshBucket(pingPeer func(addr string) bool) {
 		b.Len--
 	}
 }
+
+func (b *Bucket) GetPeers() []*Peer {
+	peers := make([]*Peer, 0, b.Len)
+
+	peer := b.Peers.Front()
+	for peer != nil {
+		peers = append(peers, peer.Value.(*Peer))
+		peer = peer.Next()
+	}
+
+	return peers
+}

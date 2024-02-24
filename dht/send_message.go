@@ -3,11 +3,14 @@ package dht
 import (
 	"bittorrent/utils"
 	"fmt"
+	"log"
 	"net"
 )
 
 func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
 	msg_byte := EncodeMessage(msg)
+
+	log.Println(string(msg_byte))
 
 	n, err := d.Conn.WriteToUDP(msg_byte, addr)
 	if err != nil {
