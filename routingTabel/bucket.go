@@ -85,7 +85,9 @@ func (b *Bucket) Print() {
 	peer := b.Peers.Front()
 	for peer != nil {
 		p := peer.Value.(*Peer)
-		fmt.Println("[peer] ", p.Id, p.Address)
+		fmt.Printf("[peer] %v %v ", p.Id, p.Address)
+
 		peer = peer.Next()
 	}
+	fmt.Println("[Bucket] len ", b.Len)
 }
