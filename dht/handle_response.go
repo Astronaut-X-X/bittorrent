@@ -11,15 +11,13 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 	if m.R == nil {
 		return
 	}
-	fmt.Println(m.R.Nodes)
 	if m.R.Nodes != "" {
-		num := len(m.R.Nodes) / (20 + 4 + 2)
-		for i := 0; i < num; i++ {
-			s := i * 26
-			eid := s + 20
-			id := m.R.Nodes[s:eid]
-			ip := net.IPv4(m.R.Nodes[s+21], m.R.Nodes[s+22], m.R.Nodes[s+23], m.R.Nodes[s+24])
-			port := int(m.R.Nodes[s+25])*256 + int(m.R.Nodes[s+26])
+		length := len(m.R.Nodes)
+		for i := 0; i < length; i += 26 {
+			id := m.R.Nodes[i : i+20]
+			ip := net.IPv4(m.R.Nodes[i+20], m.R.Nodes[i+21], m.R.Nodes[1+22], m.R.Nodes[1+23])
+			port := int(m.R.Nodes[i+24])*256 + int(m.R.Nodes[i+25])
+
 			d.routingTable.Add(id, ip.String(), ip.String(), port)
 
 			fmt.Println(string(id), ip.String(), port)
