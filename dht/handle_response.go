@@ -1,6 +1,9 @@
 package dht
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 	d.routingTable.Add(m.R.Id, addr.String(), addr.IP.String(), addr.Port)
@@ -8,6 +11,7 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 	if m.R == nil {
 		return
 	}
+	fmt.Println(m.R.Nodes)
 	if m.R.Nodes != "" {
 		num := len(m.R.Nodes) / (20 + 4 + 2)
 		for i := 0; i < num; i++ {
@@ -18,6 +22,7 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 			port := int(m.R.Nodes[s+25])*256 + int(m.R.Nodes[s+26])
 			d.routingTable.Add(id, ip.String(), ip.String(), port)
 
+			fmt.Println(string(id), ip.String(), port)
 			d.log.Println(string(id), ip.String(), port)
 		}
 	}
