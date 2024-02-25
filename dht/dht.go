@@ -180,6 +180,7 @@ out:
 			}
 
 			d.log.Println("[receive]", buffer[:n])
+			d.log.Println("[receive]", string(buffer[:n]))
 
 			go d.process(addr, buffer[:n])
 		}
