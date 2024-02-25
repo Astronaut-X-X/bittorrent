@@ -3,6 +3,7 @@ package dht
 import (
 	"fmt"
 	"net"
+	"strconv"
 )
 
 func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
@@ -18,8 +19,9 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 			id := m.R.Nodes[i : i+20]
 			ip := net.IPv4(m.R.Nodes[i+20], m.R.Nodes[i+21], m.R.Nodes[1+22], m.R.Nodes[1+23])
 			port := int(m.R.Nodes[i+24])*256 + int(m.R.Nodes[i+25])
+			addr := ip.String() + ":" + strconv.Itoa(port)
 
-			d.routingTable.Add(id, ip.String(), ip.String(), port)
+			d.routingTable.Add(id, addr, ip.String(), port)
 
 			fmt.Println("[Nodes]", string(id), ip.String(), port)
 			d.log.Println("[Nodes]", string(id), ip.String(), port)
