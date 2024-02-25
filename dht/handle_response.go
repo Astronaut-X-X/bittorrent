@@ -7,10 +7,11 @@ import (
 
 func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 	d.routingTable.Add(m.R.Id, addr.String(), addr.IP.String(), addr.Port)
-
+	fmt.Println(m.R)
 	if m.R == nil {
 		return
 	}
+	fmt.Println(m.R.Nodes)
 	if m.R.Nodes != "" {
 		length := len(m.R.Nodes)
 		for i := 0; i < length; i += 26 {
@@ -20,8 +21,8 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 
 			d.routingTable.Add(id, ip.String(), ip.String(), port)
 
-			fmt.Println(string(id), ip.String(), port)
-			d.log.Println(string(id), ip.String(), port)
+			fmt.Println("[Nodes]", string(id), ip.String(), port)
+			d.log.Println("[Nodes]", string(id), ip.String(), port)
 		}
 	}
 	if m.R.Values != nil {
