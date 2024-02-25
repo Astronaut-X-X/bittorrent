@@ -36,6 +36,8 @@ func NewDHT(c *config) (*DHT, error) {
 	dht := &DHT{}
 	dht.initLog()
 
+	dht.context, dht.cancel = context.WithCancel(context.Background())
+
 	addr, err := net.ResolveUDPAddr("udp", c.Address)
 	if err != nil {
 		return nil, err
@@ -49,12 +51,10 @@ func NewDHT(c *config) (*DHT, error) {
 	dht.config = c
 	dht.tm = NewTransactionManager()
 
-	dht.routingTable = rt.NewRoutingTable()
+	dht.routingTable = rt.NewRoutingTable(dht.context)
 	dht.routingTable.SetPingPeer(func(addr string) bool {
 		return <-Ping(dht, addr)
 	})
-
-	dht.context, dht.cancel = context.WithCancel(context.Background())
 
 	return dht, nil
 }
@@ -153,7 +153,7 @@ func (d *DHT) getPeers() {
 					Q: "find_node",
 					A: &A{
 						Id:     d.routingTable.LocalId,
-						Target: utils.RandomT(),
+						Target: target,
 					},
 				}
 

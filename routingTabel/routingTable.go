@@ -12,6 +12,7 @@ const (
 	TableSize   = 160
 	BucketSize  = 8
 	RefreshTime = time.Minute * 15
+	PrintTime   = time.Second * 10
 )
 
 type RoutingTable struct {
@@ -25,16 +26,20 @@ type RoutingTable struct {
 	pingPeer func(addr string) bool
 }
 
-func NewRoutingTable() *RoutingTable {
+func NewRoutingTable(context context.Context) *RoutingTable {
 	table := &RoutingTable{
+		context: context,
 		Bucket:  make([]*Bucket, TableSize),
 		LocalId: utils.RandomID(),
 	}
 
 	for i := 0; i < TableSize; i++ {
 		n := (i + 1) * (4 + 1*2)
-		table.Bucket[i] = NewBucket(n)
+		table.Bucket[i] = NewBucket(n, i)
 	}
+
+	go table.RunTimeRefresh()
+	go table.RunTimePrint()
 
 	return table
 }
@@ -60,6 +65,25 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 
 func (r *RoutingTable) GetPeers(x string) []*Peer {
 	bucket := r.GetBucket(r.LocalId, x)
+	if bucket.Len == 0 {
+		i, j := bucket.Index, bucket.Index
+
+		for i > 0 {
+			if r.Bucket[i].Len > 0 {
+				return r.Bucket[i].GetPeers()
+			}
+			i--
+		}
+
+		for j < 160 {
+			if r.Bucket[i].Len > 0 {
+				return r.Bucket[i].GetPeers()
+			}
+			j++
+		}
+
+	}
+
 	return bucket.GetPeers()
 }
 
@@ -78,6 +102,21 @@ out:
 
 }
 
+func (r *RoutingTable) RunTimePrint() {
+	t := time.NewTicker(PrintTime)
+out:
+	for {
+		select {
+		case <-r.context.Done():
+			fmt.Println("[RunTimePrint] done")
+			break out
+		case <-t.C:
+			r.PrintRoutingTable()
+		}
+	}
+
+}
+
 func (r *RoutingTable) RefreshAllBucket() {
 	for _, bucket := range r.Bucket {
 		bucket.RefreshBucket(r.pingPeer)
@@ -86,4 +125,10 @@ func (r *RoutingTable) RefreshAllBucket() {
 
 func (r *RoutingTable) SetPingPeer(pingPeer func(addr string) bool) {
 	r.pingPeer = pingPeer
+}
+
+func (r *RoutingTable) PrintRoutingTable() {
+	for _, bucket := range r.Bucket {
+		bucket.Print()
+	}
 }

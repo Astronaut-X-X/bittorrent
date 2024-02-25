@@ -1,15 +1,20 @@
 package routingTable
 
-import "container/list"
+import (
+	"container/list"
+	"fmt"
+)
 
 type Bucket struct {
+	Index int
 	Size  int
 	Len   int
 	Peers *list.List
 }
 
-func NewBucket(size int) *Bucket {
+func NewBucket(size int, index int) *Bucket {
 	return &Bucket{
+		Index: index,
 		Size:  size,
 		Len:   0,
 		Peers: list.New(),
@@ -55,4 +60,13 @@ func (b *Bucket) GetPeers() []*Peer {
 	}
 
 	return peers
+}
+
+func (b *Bucket) Print() {
+	peer := b.Peers.Front()
+	for peer != nil {
+		p := peer.Value.(*Peer)
+		fmt.Println("[peer] ", p.Id, p.Address)
+		peer = peer.Next()
+	}
 }
