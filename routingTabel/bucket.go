@@ -22,6 +22,10 @@ func NewBucket(size int, index int) *Bucket {
 }
 
 func (b *Bucket) Add(peer *Peer, pingPeer func(string) bool) {
+	if b.GetPeerById(peer.Id) != nil {
+		return
+	}
+
 	if b.Len < b.Size {
 		b.Peers.PushBack(peer)
 		b.Len++
@@ -33,6 +37,17 @@ func (b *Bucket) Add(peer *Peer, pingPeer func(string) bool) {
 			b.Len--
 		}
 	}
+}
+
+func (b *Bucket) GetPeerById(id string) *Peer {
+	node := b.Peers.Front()
+	for node != nil {
+		peer := node.Value.(*Peer)
+		if peer.Id == id {
+			return peer
+		}
+	}
+	return nil
 }
 
 func (b *Bucket) RefreshBucket(pingPeer func(addr string) bool) {
