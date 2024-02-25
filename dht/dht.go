@@ -199,6 +199,6 @@ func (d *DHT) process(addr *net.UDPAddr, data []byte) {
 	case "q":
 		handleQuery(d, m, addr)
 	case "r":
-		handleResponse(d, m)
+		handleResponse(d, m, addr)
 	}
 }

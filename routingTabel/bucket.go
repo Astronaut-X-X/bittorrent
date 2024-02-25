@@ -63,6 +63,10 @@ func (b *Bucket) GetPeers() []*Peer {
 }
 
 func (b *Bucket) Print() {
+	if b.Len == 0 {
+		fmt.Println("[Bucket] ", b.Index, " empty")
+	}
+
 	peer := b.Peers.Front()
 	for peer != nil {
 		p := peer.Value.(*Peer)

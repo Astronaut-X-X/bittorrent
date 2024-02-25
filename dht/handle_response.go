@@ -2,7 +2,8 @@ package dht
 
 import "net"
 
-func handleResponse(d *DHT, m *Message) {
+func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
+	d.routingTable.Add(m.R.Id, addr.String(), addr.IP.String(), addr.Port)
 
 	switch m.Q {
 	case ping:
