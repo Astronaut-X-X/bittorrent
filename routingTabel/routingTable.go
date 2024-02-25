@@ -16,7 +16,7 @@ const (
 )
 
 type RoutingTable struct {
-	L sync.Locker
+	L sync.Mutex
 
 	context context.Context
 
