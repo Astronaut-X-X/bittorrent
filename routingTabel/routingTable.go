@@ -13,7 +13,7 @@ const (
 	TableSize   = 160
 	BucketSize  = 8
 	RefreshTime = time.Minute * 15
-	PrintTime   = time.Second * 60
+	PrintTime   = time.Second * 10
 )
 
 type RoutingTable struct {
@@ -40,7 +40,7 @@ func NewRoutingTable(context context.Context) *RoutingTable {
 	}
 
 	go table.RunTimeRefresh()
-	//go table.RunTimePrint()
+	go table.RunTimePrint()
 
 	return table
 }
