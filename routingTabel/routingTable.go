@@ -131,6 +131,7 @@ func (r *RoutingTable) SetPingPeer(pingPeer func(addr *net.UDPAddr) bool) {
 
 func (r *RoutingTable) PrintRoutingTable() {
 	for _, bucket := range r.Bucket {
+		fmt.Println("[Bucket]", bucket.Index, bucket.Len)
 		bucket.Print()
 	}
 }
