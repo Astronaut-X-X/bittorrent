@@ -21,9 +21,6 @@ func handleResponse(d *DHT, m *Message, addr *net.UDPAddr) {
 				fmt.Println(err.Error())
 				continue
 			}
-
-			fmt.Println("[Nodes]", ip.String(), port)
-			d.log.Println("[Nodes]", ip.String(), port)
 		}
 	}
 

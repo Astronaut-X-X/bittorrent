@@ -40,7 +40,7 @@ func NewRoutingTable(context context.Context) *RoutingTable {
 	}
 
 	go table.RunTimeRefresh()
-	go table.RunTimePrint()
+	//go table.RunTimePrint()
 
 	return table
 }
