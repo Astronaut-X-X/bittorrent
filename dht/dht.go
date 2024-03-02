@@ -52,7 +52,7 @@ func NewDHT(c *config) (*DHT, error) {
 	dht.tm = NewTransactionManager()
 
 	dht.routingTable = rt.NewRoutingTable(dht.context)
-	dht.routingTable.SetPingPeer(func(addr string) bool {
+	dht.routingTable.SetPingPeer(func(addr *net.UDPAddr) bool {
 		return <-Ping(dht, addr)
 	})
 
@@ -145,12 +145,6 @@ func (d *DHT) getPeers() {
 			}
 
 			for _, peer := range peers {
-				addr, err := net.ResolveUDPAddr("udp", peer.Address)
-				if err != nil {
-					fmt.Println(err.Error())
-					continue
-				}
-
 				msg := &Message{
 					T: utils.RandomT(),
 					Y: "q",
@@ -161,7 +155,7 @@ func (d *DHT) getPeers() {
 					},
 				}
 
-				sendMessage(d, msg, addr)
+				sendMessage(d, msg, peer.Addr)
 			}
 			t.Reset(time.Second)
 		}
@@ -198,6 +192,13 @@ func (d *DHT) process(addr *net.UDPAddr, data []byte) {
 	if err != nil {
 		fmt.Println(err.Error())
 		return
+	}
+
+	transaction, ok := d.tm.Load(m.T)
+	if ok {
+		fmt.Println("[transaction]", m.T)
+		transaction.Response <- true
+		transaction.ResponseData = data
 	}
 
 	switch m.Y {

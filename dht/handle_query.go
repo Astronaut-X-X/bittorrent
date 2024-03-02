@@ -7,7 +7,9 @@ import (
 )
 
 func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
-	d.routingTable.Add(m.A.Id, addr.String(), addr.IP.String(), addr.Port)
+	if err := d.routingTable.Add(m.A.Id, addr.IP.String(), addr.Port); err != nil {
+		return
+	}
 
 	switch m.Q {
 	case ping:

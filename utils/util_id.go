@@ -1,26 +1,22 @@
 package utils
 
 import (
-	"crypto/rand"
-	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
-	"io"
+	"math"
 	"math/big"
+	"math/rand"
 )
 
 func RandomID() string {
-	randomData := make([]byte, 20)
-	if _, err := io.ReadFull(rand.Reader, randomData); err != nil {
-		fmt.Println(err.Error())
-		return ""
+
+	num := big.NewInt(int64(rand.Uint32()))
+	for i := 1; i < 5; i++ {
+		randNum := rand.Int63n(math.MaxUint32)
+		num = new(big.Int).Mul(num, big.NewInt(math.MaxUint32))
+		num = new(big.Int).Sub(num, big.NewInt(randNum))
 	}
 
-	hasher := sha1.New()
-	hasher.Write(randomData)
-	sha1Hash := hasher.Sum(nil)
-
-	return string(sha1Hash)
+	return string(num.Bytes())
 }
 
 func RandomToken() string {
@@ -31,20 +27,47 @@ func RandomT() string {
 	return RandomID()
 }
 
-func XOR(x, y string) int64 {
-	a := new(big.Int)
-	b := new(big.Int)
+func FirstIndex(i *big.Int) int {
+	zero := big.NewInt(0)
 
-	a.SetString(x, 16)
-	b.SetString(y, 16)
+	c := 0
+	for i.Cmp(zero) > 0 {
+		i = new(big.Int).Div(i, big.NewInt(2))
+		c++
+	}
 
-	return new(big.Int).Xor(a, b).Int64()
+	return c
+}
+
+func XOR(x, y string) *big.Int {
+	ix := toUint(x)
+	iy := toUint(y)
+
+	bytesA := ix.Bytes()
+	bytesB := iy.Bytes()
+
+	if len(bytesA) != 20 {
+		bytesA = append(make([]byte, 20-len(bytesA)), bytesA...)
+	}
+	if len(bytesB) != 20 {
+		bytesB = append(make([]byte, 20-len(bytesB)), bytesB...)
+	}
+
+	xorResult := make([]byte, len(bytesA))
+	for i := 0; i < len(xorResult); i++ {
+		xorResult[i] = bytesA[i] ^ bytesB[i]
+	}
+
+	return new(big.Int).SetBytes(xorResult)
+}
+
+func toUint(s string) *big.Int {
+	hexS := hex.EncodeToString([]byte(s))
+	num := new(big.Int)
+	num.SetString(hexS, 16)
+	return num
 }
 
 func ParseIdToByte(id string) []byte {
-	b, err := hex.DecodeString(id)
-	if err != nil {
-		return make([]byte, 20)
-	}
-	return b
+	return []byte(id)
 }

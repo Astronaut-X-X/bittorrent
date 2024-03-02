@@ -4,6 +4,7 @@ import (
 	"bittorrent/utils"
 	"context"
 	"fmt"
+	"net"
 	"sync"
 	"time"
 )
@@ -23,7 +24,7 @@ type RoutingTable struct {
 	Bucket  []*Bucket
 	LocalId string
 
-	pingPeer func(addr string) bool
+	pingPeer func(addr *net.UDPAddr) bool
 }
 
 func NewRoutingTable(context context.Context) *RoutingTable {
@@ -44,21 +45,21 @@ func NewRoutingTable(context context.Context) *RoutingTable {
 	return table
 }
 
-func (r *RoutingTable) Add(id string, address string, ip string, port int) {
+func (r *RoutingTable) Add(id string, ip string, port int) error {
 	r.L.Lock()
-	peer := NewPeer(id, address, ip, port)
+	peer, err := NewPeer(id, ip, port)
+	if err != nil {
+		return err
+	}
 	bucket := r.GetBucket(r.LocalId, id)
 	bucket.Add(peer, r.pingPeer)
 	r.L.Unlock()
+	return nil
 }
 
 func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	distance := utils.XOR(x, y)
-	i := 0
-	for distance > 0 {
-		distance = distance << 1
-		i++
-	}
+	i := utils.FirstIndex(distance)
 
 	return r.Bucket[i]
 }
@@ -123,7 +124,7 @@ func (r *RoutingTable) RefreshAllBucket() {
 	}
 }
 
-func (r *RoutingTable) SetPingPeer(pingPeer func(addr string) bool) {
+func (r *RoutingTable) SetPingPeer(pingPeer func(addr *net.UDPAddr) bool) {
 	r.pingPeer = pingPeer
 }
 

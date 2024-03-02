@@ -7,12 +7,12 @@ import (
 )
 
 func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
-	msg_byte := EncodeMessage(msg)
+	msgByte := EncodeMessage(msg)
 
-	d.log.Println("[send]", msg_byte)
-	d.log.Println("[send]", string(msg_byte))
+	d.log.Println("[send]", msgByte)
+	d.log.Println("[send]", string(msgByte))
 
-	n, err := d.Conn.WriteToUDP(msg_byte, addr)
+	n, err := d.Conn.WriteToUDP(msgByte, addr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
@@ -22,14 +22,7 @@ func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
 	return true
 }
 
-func Ping(d *DHT, addr string) chan bool {
-
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
+func Ping(d *DHT, addr *net.UDPAddr) chan bool {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -39,7 +32,7 @@ func Ping(d *DHT, addr string) chan bool {
 		},
 	}
 
-	if !sendMessage(d, msg, udpAddr) {
+	if !sendMessage(d, msg, addr) {
 		return nil
 	}
 

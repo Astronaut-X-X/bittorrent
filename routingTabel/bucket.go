@@ -3,16 +3,19 @@ package routingTable
 import (
 	"container/list"
 	"fmt"
+	"net"
 )
 
+// Bucket a bucket in the routing table contains a peer
 type Bucket struct {
-	Index int
-	Size  int
-	Len   int
-	Peers *list.List
+	Index int        // Index the index in routing table
+	Size  int        // Size the capacity of this bucket
+	Len   int        // Len the peer quantity of this bucket
+	Peers *list.List // Peers a list of Peer links
 }
 
-func NewBucket(size int, index int) *Bucket {
+// NewBucket create a bucket
+func NewBucket(index int, size int) *Bucket {
 	return &Bucket{
 		Index: index,
 		Size:  size,
@@ -21,73 +24,86 @@ func NewBucket(size int, index int) *Bucket {
 	}
 }
 
-func (b *Bucket) Add(peer *Peer, pingPeer func(string) bool) {
-	if b.GetPeerById(peer.Id) != nil {
+func (b *Bucket) Add(peer *Peer, pingPeer func(*net.UDPAddr) bool) {
+	if b.GetPeer(peer.Id) != nil {
 		return
 	}
 
 	if b.Len < b.Size {
 		b.Peers.PushBack(peer)
 		b.Len++
-	} else {
-		b.RefreshBucket(pingPeer)
-		b.Peers.PushBack(peer)
-		if b.Len >= b.Size {
-			b.Peers.Remove(b.Peers.Front())
-			b.Len--
+		return
+	}
+
+	element := b.Peers.Front()
+	for element != nil {
+		if !pingPeer(element.Value.(*Peer).Addr) {
+			b.Peers.Remove(element)
+			b.Peers.PushBack(peer)
+			return
 		}
 	}
+
+	front := b.Peers.Front()
+	b.Peers.Remove(front)
+	b.Peers.PushBack(peer)
 }
 
-func (b *Bucket) GetPeerById(id string) *Peer {
-	node := b.Peers.Front()
-	for node != nil {
-		peer := node.Value.(*Peer)
+func (b *Bucket) GetPeer(id string) *Peer {
+	element := b.Peers.Front()
+
+	for element != nil {
+		peer := element.Value.(*Peer)
 		if peer.Id == id {
 			return peer
 		}
+		element = element.Next()
 	}
-	return nil
-}
 
-func (b *Bucket) RefreshBucket(pingPeer func(addr string) bool) {
-	node := b.Peers.Front()
-	for node != nil {
-		peer := node.Value.(*Peer)
-		if pingPeer(peer.Address) {
-			node = node.Next()
-			continue
-		}
-		pre := node
-		node = node.Next()
-		b.Peers.Remove(pre)
-		b.Len--
-	}
+	return nil
 }
 
 func (b *Bucket) GetPeers() []*Peer {
 	peers := make([]*Peer, 0, b.Len)
 
-	peer := b.Peers.Front()
-	for peer != nil {
-		peers = append(peers, peer.Value.(*Peer))
-		peer = peer.Next()
+	element := b.Peers.Front()
+	for element != nil {
+		peer := element.Value.(*Peer)
+		peers = append(peers, peer)
+		element = element.Next()
 	}
 
 	return peers
 }
 
+func (b *Bucket) RefreshBucket(pingPeer func(addr *net.UDPAddr) bool) {
+	element := b.Peers.Front()
+	for element != nil {
+		peer := element.Value.(*Peer)
+		if pingPeer(peer.Addr) {
+			element = element.Next()
+			continue
+		}
+
+		pre := element
+		element = element.Next()
+
+		b.Peers.Remove(pre)
+		b.Len--
+	}
+}
+
 func (b *Bucket) Print() {
 	if b.Len == 0 {
-		fmt.Println("[Bucket] ", b.Index, " empty")
+		return
 	}
 
-	peer := b.Peers.Front()
-	for peer != nil {
-		p := peer.Value.(*Peer)
-		fmt.Printf("[peer] %v %v ", p.Id, p.Address)
-
-		peer = peer.Next()
+	element := b.Peers.Front()
+	for element != nil {
+		peer := element.Value.(*Peer)
+		fmt.Printf("[element] %v %v:%v", peer.Id, peer.Ip, peer.Port)
+		element = element.Next()
 	}
-	fmt.Println("[Bucket] len ", b.Len)
+
+	fmt.Printf("[Bucket] index:%v len:%v \n\r", b.Index, b.Len)
 }
