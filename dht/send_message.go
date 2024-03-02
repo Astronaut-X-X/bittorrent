@@ -12,13 +12,12 @@ func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
 	d.log.Println("[send]", msgByte)
 	d.log.Println("[send]", string(msgByte))
 
-	n, err := d.Conn.WriteToUDP(msgByte, addr)
+	_, err := d.Conn.WriteToUDP(msgByte, addr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
 	}
 
-	fmt.Println("send :", n)
 	return true
 }
 
