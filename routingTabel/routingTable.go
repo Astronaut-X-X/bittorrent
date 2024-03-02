@@ -36,7 +36,7 @@ func NewRoutingTable(context context.Context) *RoutingTable {
 
 	for i := 0; i < TableSize; i++ {
 		n := (i + 1) * (4 + 1*2)
-		table.Bucket[i] = NewBucket(n, i)
+		table.Bucket[i] = NewBucket(i, n)
 	}
 
 	go table.RunTimeRefresh()
