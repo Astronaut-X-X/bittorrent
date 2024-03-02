@@ -40,12 +40,21 @@ func TestParseIdToByte(t *testing.T) {
 }
 
 func TestFirstIndex(t *testing.T) {
-	for i := 0; i < 20; i++ {
-		x := RandomID()
-		y := RandomID()
+	//for i := 0; i < 20; i++ {
+	//	x := RandomID()
+	//	y := RandomID()
+	//
+	//	distance := XOR(x, y)
+	//	i := FirstIndex(distance)
+	//	fmt.Println(i)
+	//}
 
-		distance := XOR(x, y)
-		i := FirstIndex(distance)
-		fmt.Println(i)
-	}
+	//[110 136 177 79 19 76 198 91 152 71 105 119 147 133 163 86 188 170 238 74]
+	//[50 245 78 105 115 81 255 74 236 41 205 186 171 242 251 227 70 124 194 103]
+
+	x := []byte{110, 136, 177, 79, 19, 76, 198, 91, 152, 71, 105, 119, 147, 133, 163, 86, 188, 170, 238, 74}
+	y := []byte{50, 245, 78, 105, 115, 81, 255, 74, 236, 41, 205, 186, 171, 242, 251, 227, 70, 124, 194, 103}
+	distance := XOR(string(x), string(y))
+	i := FirstIndex(distance)
+	fmt.Println(i)
 }

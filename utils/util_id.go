@@ -31,8 +31,6 @@ func RandomT() string {
 func FirstIndex(i *big.Int) int {
 	zero := big.NewInt(0)
 
-	fmt.Println("FirstIndex", zero.String())
-
 	c := 0
 	for i.Cmp(zero) > 0 {
 		i = new(big.Int).Div(i, big.NewInt(2))
