@@ -61,7 +61,7 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	distance := utils.XOR(x, y)
 	i := utils.FirstIndex(distance)
 
-	return r.Bucket[i]
+	return r.Bucket[i-1]
 }
 
 func (r *RoutingTable) GetPeers(x string) []*Peer {
