@@ -66,7 +66,6 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 
 func (r *RoutingTable) GetPeers(x string) []*Peer {
 	bucket := r.GetBucket(r.LocalId, x)
-	fmt.Println(bucket.Index)
 
 	if bucket.Len == 0 {
 		i, j := bucket.Index-1, bucket.Index+1
