@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -41,9 +40,6 @@ func FirstIndex(i *big.Int) int {
 }
 
 func XOR(x, y string) *big.Int {
-	fmt.Println([]byte(x))
-	fmt.Println([]byte(y))
-
 	ix := toUint(x)
 	iy := toUint(y)
 
