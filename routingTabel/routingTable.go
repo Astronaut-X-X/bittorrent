@@ -13,7 +13,7 @@ const (
 	TableSize   = 160
 	BucketSize  = 8
 	RefreshTime = time.Minute * 15
-	PrintTime   = time.Second * 10
+	PrintTime   = time.Second * 60
 )
 
 type RoutingTable struct {
