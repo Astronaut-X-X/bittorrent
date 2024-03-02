@@ -3,6 +3,7 @@ package dht
 import (
 	"bittorrent/utils"
 	"encoding/hex"
+	"fmt"
 	"net"
 )
 
@@ -62,6 +63,9 @@ func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
 		sendMessage(d, msg, addr)
 
 	case announce_peer:
-		// TODO Get mateinfo
+		fmt.Println("info_hash", m.A.InfoHash)
+		fmt.Println("port", m.A.Port)
+		fmt.Println("token", m.A.Token)
+		fmt.Println("implied_port", m.A.ImpliedPort)
 	}
 }
