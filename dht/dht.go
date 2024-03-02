@@ -131,6 +131,8 @@ func (d *DHT) getPeers() {
 			infoHash := utils.RandomT()
 			peers := d.routingTable.GetPeers(infoHash)
 
+			fmt.Println(len(peers))
+
 			for _, peer := range peers {
 				GetPeers(d, peer.Addr, infoHash)
 			}
