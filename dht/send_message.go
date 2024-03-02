@@ -7,10 +7,11 @@ import (
 )
 
 func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
+	d.tm.Store(NewTransaction(msg.T, msg))
+
 	msgByte := EncodeMessage(msg)
 
 	d.log.Println("[send]", msgByte)
-	d.log.Println("[send]", string(msgByte))
 
 	_, err := d.Conn.WriteToUDP(msgByte, addr)
 	if err != nil {
@@ -62,13 +63,7 @@ func FindNode(d *DHT, addr string, target string) {
 	sendMessage(d, msg, udpAddr)
 }
 
-func GetPeers(d *DHT, addr string, infoHash string) {
-
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+func GetPeers(d *DHT, addr *net.UDPAddr, infoHash string) {
 
 	msg := &Message{
 		T: utils.RandomT(),
@@ -80,7 +75,7 @@ func GetPeers(d *DHT, addr string, infoHash string) {
 		},
 	}
 
-	sendMessage(d, msg, udpAddr)
+	sendMessage(d, msg, addr)
 }
 
 func AnnouncePeer(d *DHT, addr string, infoHash string) {

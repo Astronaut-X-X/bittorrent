@@ -106,16 +106,6 @@ func (d *DHT) sendPrimeNodes() {
 
 		fmt.Println(addr.IP, addr.Port)
 
-		// message := &Message{
-		// 	T: rt.RandLocalId(),
-		// 	Y: "q",
-		// 	Q: "find_node",
-		// 	A: &A{
-		// 		Id:     d.routingTable.LocalId,
-		// 		Target: rt.RandLocalId(),
-		// 	},
-		// }
-
 		msg := &Message{
 			T: utils.RandomT(),
 			Y: "q",
@@ -138,22 +128,13 @@ func (d *DHT) getPeers() {
 		select {
 		case <-d.context.Done():
 		case <-t.C:
-			target := utils.RandomT()
-			peers := d.routingTable.GetPeers(target)
+			infoHash := utils.RandomT()
+			peers := d.routingTable.GetPeers(infoHash)
 
 			for _, peer := range peers {
-				msg := &Message{
-					T: utils.RandomT(),
-					Y: "q",
-					Q: "find_node",
-					A: &A{
-						Id:     d.routingTable.LocalId,
-						Target: target,
-					},
-				}
-
-				sendMessage(d, msg, peer.Addr)
+				GetPeers(d, peer.Addr, infoHash)
 			}
+
 			t.Reset(time.Second)
 		}
 	}
@@ -175,7 +156,6 @@ out:
 			}
 
 			d.log.Println("[receive]", buffer[:n])
-			d.log.Println("[receive]", string(buffer[:n]))
 
 			go d.process(addr, buffer[:n])
 		}
