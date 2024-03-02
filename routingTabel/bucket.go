@@ -97,13 +97,13 @@ func (b *Bucket) Print() {
 	if b.Len == 0 {
 		return
 	}
-
+	fmt.Println("-----------------------------------")
 	element := b.Peers.Front()
 	for element != nil {
 		peer := element.Value.(*Peer)
-		fmt.Printf("[element] %v %v:%v", peer.Id, peer.Ip, peer.Port)
+		fmt.Printf("[element] %v:%v \r\n", peer.Ip, peer.Port)
 		element = element.Next()
 	}
-
 	fmt.Printf("[Bucket] index:%v len:%v \n\r", b.Index, b.Len)
+	fmt.Println("-----------------------------------")
 }
