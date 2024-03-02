@@ -140,9 +140,6 @@ func (d *DHT) getPeers() {
 		case <-t.C:
 			target := utils.RandomT()
 			peers := d.routingTable.GetPeers(target)
-			if len(peers) == 0 {
-				fmt.Println("[getPeers] empty")
-			}
 
 			for _, peer := range peers {
 				msg := &Message{

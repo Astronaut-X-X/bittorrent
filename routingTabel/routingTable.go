@@ -70,14 +70,12 @@ func (r *RoutingTable) GetPeers(x string) []*Peer {
 
 	if bucket.Len == 0 {
 		i, j := bucket.Index-1, bucket.Index+1
-		fmt.Println(i, j)
 
 		for i > 0 {
 			if r.Bucket[i].Len > 0 {
 				return r.Bucket[i].GetPeers()
 			}
 			i--
-			fmt.Println(i)
 		}
 
 		for j < 160 {
@@ -85,7 +83,6 @@ func (r *RoutingTable) GetPeers(x string) []*Peer {
 				return r.Bucket[i].GetPeers()
 			}
 			j++
-			fmt.Println(j)
 		}
 
 	}
