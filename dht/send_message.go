@@ -83,6 +83,7 @@ func GetPeers(d *DHT, addr *net.UDPAddr, infoHash string, peers []*routingTable.
 	if _, ok := d.tm.Load(msg.T); !ok {
 		t := NewTransaction(msg.T, d, msg, func(t *Transaction) {
 			if len(t.Peers) == 0 {
+				fmt.Println("[getPeer done] empty Peer")
 				t.Response <- false
 				return
 			}
