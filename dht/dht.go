@@ -62,7 +62,8 @@ func NewDHT(c *config) (*DHT, error) {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	go d.getPeers()
+	//go d.getPeers()
+	go d.getPeer()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -131,15 +132,24 @@ func (d *DHT) getPeers() {
 			infoHash := utils.RandomT()
 			peers := d.routingTable.GetPeers(infoHash)
 
-			fmt.Println(len(peers))
-
 			for _, peer := range peers {
-				GetPeers(d, peer.Addr, infoHash)
+				GetPeers(d, peer.Addr, infoHash, nil)
 			}
 
 			t.Reset(time.Second)
 		}
 	}
+}
+
+func (d *DHT) getPeer() {
+	infoHash := utils.RandomT()
+	peers := d.routingTable.GetPeers(infoHash)
+
+	if len(peers) == 0 {
+		return
+	}
+
+	GetPeers(d, peers[0].Addr, infoHash, peers[1:])
 }
 
 func (d *DHT) receiving() {
@@ -171,13 +181,6 @@ func (d *DHT) process(addr *net.UDPAddr, data []byte) {
 	if err != nil {
 		fmt.Println(err.Error())
 		return
-	}
-
-	transaction, ok := d.tm.Load(m.T)
-	if ok {
-		fmt.Println("[transaction]", m.T)
-		transaction.Response <- true
-		transaction.ResponseData = data
 	}
 
 	switch m.Y {

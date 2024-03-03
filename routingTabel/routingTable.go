@@ -45,6 +45,15 @@ func NewRoutingTable(context context.Context) *RoutingTable {
 	return table
 }
 
+func (r *RoutingTable) AddPeers(peers []*Peer) {
+	r.L.Lock()
+	for _, peer := range peers {
+		bucket := r.GetBucket(r.LocalId, peer.Id)
+		bucket.Add(peer, r.pingPeer)
+	}
+	r.L.Unlock()
+}
+
 func (r *RoutingTable) Add(id string, ip string, port int) error {
 	r.L.Lock()
 	peer, err := NewPeer(id, ip, port)

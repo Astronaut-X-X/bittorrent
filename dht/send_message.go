@@ -1,13 +1,13 @@
 package dht
 
 import (
+	routingTable "bittorrent/routingTabel"
 	"bittorrent/utils"
 	"fmt"
 	"net"
 )
 
 func sendMessage(d *DHT, msg *Message, addr *net.UDPAddr) bool {
-	d.tm.Store(NewTransaction(msg.T, msg))
 
 	msgByte := EncodeMessage(msg)
 
@@ -36,7 +36,7 @@ func Ping(d *DHT, addr *net.UDPAddr) chan bool {
 		return nil
 	}
 
-	t := NewTransaction(msg.T, msg)
+	t := NewTransaction(msg.T, d, msg, func(t *Transaction) { t.Response <- false })
 	d.tm.Store(t)
 
 	return t.Response
@@ -60,10 +60,13 @@ func FindNode(d *DHT, addr string, target string) {
 		},
 	}
 
+	t := NewTransaction(msg.T, d, msg, func(t *Transaction) { t.Response <- false })
+	d.tm.Store(t)
+
 	sendMessage(d, msg, udpAddr)
 }
 
-func GetPeers(d *DHT, addr *net.UDPAddr, infoHash string) {
+func GetPeers(d *DHT, addr *net.UDPAddr, infoHash string, peers []*routingTable.Peer) {
 
 	msg := &Message{
 		T: utils.RandomT(),
@@ -73,6 +76,23 @@ func GetPeers(d *DHT, addr *net.UDPAddr, infoHash string) {
 			Id:       d.routingTable.LocalId,
 			InfoHash: infoHash,
 		},
+	}
+
+	fmt.Println("[GetPeers]", infoHash, addr.String())
+
+	if _, ok := d.tm.Load(msg.T); !ok {
+		t := NewTransaction(msg.T, d, msg, func(t *Transaction) {
+			if len(t.Peers) == 0 {
+				t.Response <- false
+				return
+			}
+
+			peer := t.Peers[0]
+			t.Peers = t.Peers[1:]
+			GetPeers(t.DHT, peer.Addr, msg.A.InfoHash, nil)
+		})
+		t.Peers = append(t.Peers, peers...)
+		d.tm.Store(t)
 	}
 
 	sendMessage(d, msg, addr)

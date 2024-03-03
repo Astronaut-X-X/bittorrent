@@ -1,9 +1,12 @@
 package dht
 
 import (
+	routingTable "bittorrent/routingTabel"
 	"sync"
 	"time"
 )
+
+const Timeout = time.Second * 60
 
 type TransactionManager struct {
 	TransactionMap sync.Map
@@ -11,9 +14,12 @@ type TransactionManager struct {
 
 type Transaction struct {
 	Id           string
+	DHT          *DHT
 	Query        *Message
+	Peers        []*routingTable.Peer
 	ResponseData []byte
 	Response     chan bool
+	timer        *time.Timer
 }
 
 func NewTransactionManager() *TransactionManager {
@@ -22,17 +28,20 @@ func NewTransactionManager() *TransactionManager {
 	}
 }
 
-func NewTransaction(id string, query *Message) *Transaction {
+func NewTransaction(id string, d *DHT, query *Message, afterFunc func(*Transaction)) *Transaction {
 	t := &Transaction{
 		Id:           id,
+		DHT:          d,
 		Query:        query,
+		Peers:        make([]*routingTable.Peer, 0),
 		ResponseData: nil,
-		Response:     make(chan bool),
+		Response:     make(chan bool, 1),
+		timer:        nil,
 	}
 
 	// Transaction timeout
-	time.AfterFunc(time.Second*60, func() {
-		t.Response <- false
+	t.timer = time.AfterFunc(Timeout, func() {
+		afterFunc(t)
 	})
 
 	return t
@@ -49,4 +58,8 @@ func (m *TransactionManager) Load(id string) (*Transaction, bool) {
 	}
 
 	return value.(*Transaction), true
+}
+
+func (m *TransactionManager) Delete(t *Transaction) {
+	m.TransactionMap.Delete(t.Id)
 }
