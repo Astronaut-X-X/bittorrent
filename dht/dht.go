@@ -63,7 +63,6 @@ func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
 	//go d.getPeers()
-	go d.getPeer()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -119,6 +118,8 @@ func (d *DHT) sendPrimeNodes() {
 		sendMessage(d, msg, addr)
 	}
 
+	time.Sleep(time.Second)
+	d.getPeer()
 }
 
 func (d *DHT) getPeers() {
@@ -146,6 +147,7 @@ func (d *DHT) getPeer() {
 	peers := d.routingTable.GetPeers(infoHash)
 
 	if len(peers) == 0 {
+		fmt.Println("[peers] length", 0)
 		return
 	}
 
