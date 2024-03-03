@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const Timeout = time.Second * 60
+const Timeout = time.Second * 20
 
 type TransactionManager struct {
 	TransactionMap sync.Map
