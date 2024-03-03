@@ -13,7 +13,7 @@ const (
 	TableSize   = 160
 	BucketSize  = 8
 	RefreshTime = time.Minute * 15
-	PrintTime   = time.Second * 10
+	PrintTime   = time.Second * 60
 )
 
 type RoutingTable struct {
@@ -140,7 +140,6 @@ func (r *RoutingTable) SetPingPeer(pingPeer func(addr *net.UDPAddr) bool) {
 
 func (r *RoutingTable) PrintRoutingTable() {
 	for _, bucket := range r.Bucket {
-		fmt.Println("[Bucket]", bucket.Index, bucket.Len)
 		bucket.Print()
 	}
 }
