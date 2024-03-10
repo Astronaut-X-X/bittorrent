@@ -103,7 +103,7 @@ func (d *DHT) receiving() {
 func (d *DHT) getPeers() {
 	t := time.NewTicker(time.Second)
 
-	const time = 512
+	const Number = 512
 	var count int64 = 0
 
 	defer t.Stop()
@@ -112,7 +112,7 @@ func (d *DHT) getPeers() {
 		select {
 		case <-d.Context.Done():
 		case <-t.C:
-			if count < time {
+			if count < Number {
 				go func() {
 					atomic.AddInt64(&count, 1)
 					defer atomic.AddInt64(&count, -1)
