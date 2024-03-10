@@ -85,6 +85,8 @@ func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 		return
 	}
 
+	fmt.Println("[RECEIVE]", string(data))
+
 	switch m.Y {
 	case "q":
 		handleQuery(c, m, addr)

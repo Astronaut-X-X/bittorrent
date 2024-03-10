@@ -1,15 +1,20 @@
 package krpc
 
 import (
+	"fmt"
 	"net"
 
 	"bittorrent/utils"
 )
 
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) bool {
-	if _, err := c.WriteToUDP(EncodeMessage(msg), addr); err != nil {
+	msgByte := EncodeMessage(msg)
+
+	if _, err := c.WriteToUDP(msgByte, addr); err != nil {
 		return false
 	}
+
+	fmt.Println("[SEND]", string(msgByte))
 
 	return true
 }
