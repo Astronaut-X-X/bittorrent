@@ -70,7 +70,9 @@ func (r *RoutingTable) Add(id string, ip string, port int) error {
 func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	distance := utils.XOR(x, y)
 	i := utils.FirstIndex(distance)
-
+	if i != 0 {
+		i--
+	}
 	return r.Bucket[i]
 }
 
