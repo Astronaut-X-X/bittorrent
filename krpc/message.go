@@ -204,10 +204,10 @@ func PrintA(A *A) string {
 		s += "[id:" + toStr(A.Id) + "]"
 	}
 	if A.InfoHash != "" {
-		s += "[info_hash:" + toStr(A.InfoHash)
+		s += "[info_hash:" + toStr(A.InfoHash) + "]"
 	}
 	if A.Target != "" {
-		s += "[target:" + A.Target
+		s += "[target:" + toStr(A.Target) + "]"
 	}
 	if A.ImpliedPort != 0 {
 		s += fmt.Sprintf("[implied_port:%d]", A.ImpliedPort)
