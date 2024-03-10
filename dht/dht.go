@@ -28,6 +28,7 @@ func NewDHT(config *Config) (*DHT, error) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	dht := &DHT{}
+	dht.initLog()
 	dht.Context, dht.Cancel = ctx, cancelFunc
 	dht.Config = config
 	dht.LocalId = localId
