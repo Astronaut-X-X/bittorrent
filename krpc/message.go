@@ -29,8 +29,8 @@ type A struct {
 	Id          string `json:"id"`
 	Target      string `json:"targer,omitempty"`
 	InfoHash    string `json:"info_hash,omitempty"`
-	ImpliedPort int    `json:"implied_port,omitempty"`
-	Port        int    `json:"port,omitempty"`
+	ImpliedPort int64  `json:"implied_port,omitempty"`
+	Port        int64  `json:"port,omitempty"`
 	Token       string `json:"token,omitempty"`
 }
 
@@ -132,10 +132,10 @@ func mapToA(aMap map[string]interface{}) *A {
 		A.Target = aMap["target"].(string)
 	}
 	if aMap["implied_port"] != nil {
-		A.ImpliedPort = aMap["implied_port"].(int)
+		A.ImpliedPort = aMap["implied_port"].(int64)
 	}
 	if aMap["port"] != nil {
-		A.Port = aMap["port"].(int)
+		A.Port = aMap["port"].(int64)
 	}
 	if aMap["token"] != nil {
 		A.Token = aMap["token"].(string)
