@@ -86,7 +86,7 @@ func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 		return
 	}
 
-	logger.Println("[RECEIVE]", string(data))
+	logger.Println("[RECEIVE]", Print(m))
 
 	switch m.Y {
 	case "q":

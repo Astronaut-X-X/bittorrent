@@ -3,6 +3,7 @@ package krpc
 import (
 	"bittorrent/bencode"
 	"bytes"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -105,7 +106,7 @@ func aToMap(A *A) map[string]interface{} {
 		aMap["info_hash"] = A.InfoHash
 	}
 	if A.Target != "" {
-		aMap["targer"] = A.Target
+		aMap["target"] = A.Target
 	}
 	if A.ImpliedPort != 0 {
 		aMap["implied_port"] = A.ImpliedPort
@@ -127,8 +128,8 @@ func mapToA(aMap map[string]interface{}) *A {
 	if aMap["info_hash"] != nil {
 		A.InfoHash = aMap["info_hash"].(string)
 	}
-	if aMap["targer"] != nil {
-		A.Target = aMap["targer"].(string)
+	if aMap["target"] != nil {
+		A.Target = aMap["target"].(string)
 	}
 	if aMap["implied_port"] != nil {
 		A.ImpliedPort = aMap["implied_port"].(int)
@@ -174,4 +175,71 @@ func mapToR(rMap map[string]interface{}) *R {
 		R.Values = rMap["values"].([]string)
 	}
 	return R
+}
+
+func Print(msg *Message) string {
+	s := "["
+	if msg.T != "" {
+		s += "t:" + toStr(msg.T)
+	}
+	if msg.Y != "" {
+		s += "y:" + msg.Y
+	}
+	if msg.Q != "" {
+		s += "y:" + msg.Q
+	}
+	if msg.A != nil {
+		s += PrintA(msg.A)
+	}
+	if msg.R != nil {
+		s += PrintR(msg.R)
+	}
+
+	return s + "]"
+}
+
+func PrintA(A *A) string {
+	s := "a:["
+	if A.Id != "" {
+		s += "id:" + toStr(A.Id)
+	}
+	if A.InfoHash != "" {
+		s += "info_hash:" + A.InfoHash
+	}
+	if A.Target != "" {
+		s += "target:" + A.Target
+	}
+	if A.ImpliedPort != 0 {
+		s += fmt.Sprintf("implied_port:%d", A.ImpliedPort)
+	}
+	if A.Port != 0 {
+		s += fmt.Sprintf("port:%d", A.Port)
+	}
+	if A.Token != "" {
+		s += "token:" + A.Token
+	}
+	return s + "]"
+}
+
+func PrintR(R *R) string {
+	s := "r:["
+
+	if R.Id != "" {
+		s += "id:" + toStr(R.Id)
+	}
+	if R.Nodes != "" {
+		s += "nodes:" + toStr(R.Nodes)
+	}
+	if R.Token != "" {
+		s += "token:" + toStr(R.Token)
+	}
+	if len(R.Values) != 0 {
+		s += fmt.Sprintf("values:%v", R.Values)
+	}
+
+	return s + "]"
+}
+
+func toStr(id string) string {
+	return hex.EncodeToString([]byte(id))
 }
