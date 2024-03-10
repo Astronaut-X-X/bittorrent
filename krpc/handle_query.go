@@ -1,7 +1,6 @@
 package krpc
 
 import (
-	"encoding/hex"
 	"fmt"
 	"net"
 
@@ -47,7 +46,10 @@ func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 		peers := c.RoutingTable.GetPeers(m.A.Target)
 
 		nodes := make([]byte, 0)
-		for _, peer := range peers {
+		for i, peer := range peers {
+			if i == 7 {
+				break
+			}
 			nodes = append(nodes, utils.ParseIdToByte(peer.Id)...)
 			nodes = append(nodes, utils.ParseIpPortToByte(peer.Ip, peer.Port)...)
 		}
@@ -57,7 +59,7 @@ func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 			Y: r,
 			R: &R{
 				Id:    c.LocalId,
-				Nodes: hex.EncodeToString(nodes),
+				Nodes: string(nodes),
 				Token: utils.RandomToken(),
 			},
 		}

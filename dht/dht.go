@@ -55,7 +55,8 @@ func (d *DHT) initLog() {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	go d.getPeers()
+	//go d.getPeers()
+	go d.findNode()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -119,6 +120,34 @@ func (d *DHT) getPeers() {
 
 					infoHash := utils.RandomT()
 					if resp := d.Client.GetPeers(infoHash); resp != nil {
+						<-resp
+					}
+				}()
+			}
+			t.Reset(time.Second)
+		}
+	}
+}
+
+func (d *DHT) findNode() {
+	t := time.NewTicker(time.Second)
+
+	const Number = 512
+	var count int64 = 0
+
+	defer t.Stop()
+	for {
+
+		select {
+		case <-d.Context.Done():
+		case <-t.C:
+			if count < Number {
+				go func() {
+					atomic.AddInt64(&count, 1)
+					defer atomic.AddInt64(&count, -1)
+
+					infoHash := utils.RandomT()
+					if resp := d.Client.FindNode(infoHash); resp != nil {
 						<-resp
 					}
 				}()

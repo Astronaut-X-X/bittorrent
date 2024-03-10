@@ -38,7 +38,12 @@ func (c *Client) Ping(addr *net.UDPAddr) chan bool {
 	return t.Response
 }
 
-func (c *Client) FindNode(addr *net.UDPAddr, target string) chan bool {
+func (c *Client) FindNode(target string) chan bool {
+	peer := c.RoutingTable.GetPeer(target)
+	if peer == nil {
+		return nil
+	}
+
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -49,7 +54,7 @@ func (c *Client) FindNode(addr *net.UDPAddr, target string) chan bool {
 		},
 	}
 
-	if !c.sendMessage(msg, addr) {
+	if !c.sendMessage(msg, peer.Addr) {
 		return nil
 	}
 
