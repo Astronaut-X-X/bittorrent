@@ -4,6 +4,7 @@ import (
 	"bittorrent/utils"
 	"context"
 	"fmt"
+	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -75,11 +76,24 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 
 func (r *RoutingTable) GetPeer(x string) *Peer {
 	peers := r.GetPeers(x)
-	if len(peers) > 0 {
-		return peers[0]
+	if len(peers) == 0 {
+		return nil
 	}
 
-	return nil
+	fmt.Println("[PEER]", len(peers))
+
+	j, minNum := 0, big.NewInt(0).Exp(big.NewInt(8), big.NewInt(20), nil)
+	for i, peer := range peers {
+		distance := utils.XOR(x, peer.Id)
+		fmt.Println("[distance]", distance)
+		if distance.Cmp(minNum) < 0 {
+			minNum = distance
+			j = i
+		}
+		fmt.Println("[j]", j)
+	}
+
+	return peers[j]
 }
 
 func (r *RoutingTable) GetPeers(x string) []*Peer {
