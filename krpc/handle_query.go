@@ -38,7 +38,7 @@ func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 			Y: r,
 			R: &R{
 				Id:    c.LocalId,
-				Nodes: hex.EncodeToString(nodes),
+				Nodes: string(nodes),
 			},
 		}
 		c.sendMessage(msg, addr)
