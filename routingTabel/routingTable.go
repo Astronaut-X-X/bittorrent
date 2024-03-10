@@ -89,7 +89,9 @@ func (r *RoutingTable) GetPeer(x string) *Peer {
 		if distance.Cmp(minNum) < 0 {
 			minNum = distance
 			j = i
+
 		}
+		fmt.Println("[i]", i)
 		fmt.Println("[j]", j)
 	}
 
