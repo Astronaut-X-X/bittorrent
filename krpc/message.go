@@ -186,7 +186,7 @@ func Print(msg *Message) string {
 		s += "y:" + msg.Y
 	}
 	if msg.Q != "" {
-		s += "y:" + msg.Q
+		s += "q:" + msg.Q
 	}
 	if msg.A != nil {
 		s += PrintA(msg.A)
@@ -204,7 +204,7 @@ func PrintA(A *A) string {
 		s += "id:" + toStr(A.Id)
 	}
 	if A.InfoHash != "" {
-		s += "info_hash:" + A.InfoHash
+		s += "info_hash:" + toStr(A.InfoHash)
 	}
 	if A.Target != "" {
 		s += "target:" + A.Target
