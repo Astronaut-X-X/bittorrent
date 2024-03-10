@@ -80,21 +80,14 @@ func (r *RoutingTable) GetPeer(x string) *Peer {
 		return nil
 	}
 
-	fmt.Println("[PEER]", len(peers))
-
 	j, minNum := 0, new(big.Int).Exp(big.NewInt(2), big.NewInt(160), nil)
 	for i, peer := range peers {
 		distance := utils.XOR(x, peer.Id)
-		fmt.Println("[distance]", distance)
-		fmt.Println("[minNum]", minNum)
-		fmt.Println("distance.Cmp(minNum)", distance.Cmp(minNum))
 		if distance.Cmp(minNum) < 0 {
 			minNum = distance
 			j = i
 
 		}
-		fmt.Println("[i]", i)
-		fmt.Println("[j]", j)
 	}
 
 	return peers[j]
