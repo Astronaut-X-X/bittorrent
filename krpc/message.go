@@ -180,13 +180,13 @@ func mapToR(rMap map[string]interface{}) *R {
 func Print(msg *Message) string {
 	s := "["
 	if msg.T != "" {
-		s += "t:" + toStr(msg.T)
+		s += "[t:" + toStr(msg.T) + "]"
 	}
 	if msg.Y != "" {
-		s += "y:" + msg.Y
+		s += "[y:" + msg.Y + "]"
 	}
 	if msg.Q != "" {
-		s += "q:" + msg.Q
+		s += "[q:" + msg.Q + "]"
 	}
 	if msg.A != nil {
 		s += PrintA(msg.A)
@@ -201,22 +201,22 @@ func Print(msg *Message) string {
 func PrintA(A *A) string {
 	s := "a:["
 	if A.Id != "" {
-		s += "id:" + toStr(A.Id)
+		s += "[id:" + toStr(A.Id) + "]"
 	}
 	if A.InfoHash != "" {
-		s += "info_hash:" + toStr(A.InfoHash)
+		s += "[info_hash:" + toStr(A.InfoHash)
 	}
 	if A.Target != "" {
-		s += "target:" + A.Target
+		s += "[target:" + A.Target
 	}
 	if A.ImpliedPort != 0 {
-		s += fmt.Sprintf("implied_port:%d", A.ImpliedPort)
+		s += fmt.Sprintf("[implied_port:%d]", A.ImpliedPort)
 	}
 	if A.Port != 0 {
-		s += fmt.Sprintf("port:%d", A.Port)
+		s += fmt.Sprintf("[port:%d]", A.Port)
 	}
 	if A.Token != "" {
-		s += "token:" + A.Token
+		s += "[token:" + A.Token + "]"
 	}
 	return s + "]"
 }
@@ -225,16 +225,16 @@ func PrintR(R *R) string {
 	s := "r:["
 
 	if R.Id != "" {
-		s += "id:" + toStr(R.Id)
+		s += "[id:" + toStr(R.Id) + "]"
 	}
 	if R.Nodes != "" {
-		s += "nodes:" + toStr(R.Nodes)
+		s += "[nodes:" + toStr(R.Nodes) + "]"
 	}
 	if R.Token != "" {
-		s += "token:" + toStr(R.Token)
+		s += "[token:" + toStr(R.Token) + "]"
 	}
 	if len(R.Values) != 0 {
-		s += fmt.Sprintf("values:%v", R.Values)
+		s += fmt.Sprintf("[values:%v]", R.Values)
 	}
 
 	return s + "]"
