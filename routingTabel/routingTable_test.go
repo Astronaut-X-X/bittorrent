@@ -10,7 +10,7 @@ func TestNewRoutingTable(t *testing.T) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	table := NewRoutingTable(ctx)
+	table := NewRoutingTable("", ctx)
 	//id := table.LocalId
 	peerId := string([]byte{
 		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,

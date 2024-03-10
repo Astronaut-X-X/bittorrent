@@ -1,6 +1,6 @@
 package dht
 
-type config struct {
+type Config struct {
 	Address string
 	Ip      string
 	Port    int
@@ -10,9 +10,9 @@ type config struct {
 	PrimeNodes []string
 }
 
-func DefualtConfig() *config {
+func DefaultConfig() *Config {
 
-	return &config{
+	return &Config{
 		Address: ":6881",
 		Ip:      "",
 		Port:    6881,

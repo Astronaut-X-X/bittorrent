@@ -27,11 +27,11 @@ type RoutingTable struct {
 	pingPeer func(addr *net.UDPAddr) bool
 }
 
-func NewRoutingTable(context context.Context) *RoutingTable {
+func NewRoutingTable(localId string, context context.Context) *RoutingTable {
 	table := &RoutingTable{
 		context: context,
 		Bucket:  make([]*Bucket, TableSize),
-		LocalId: utils.RandomID(),
+		LocalId: localId,
 	}
 
 	for i := 0; i < TableSize; i++ {
@@ -71,6 +71,15 @@ func (r *RoutingTable) GetBucket(x, y string) *Bucket {
 	i := utils.FirstIndex(distance)
 
 	return r.Bucket[i-1]
+}
+
+func (r *RoutingTable) GetPeer(x string) *Peer {
+	peers := r.GetPeers(x)
+	if len(peers) > 0 {
+		return peers[0]
+	}
+
+	return nil
 }
 
 func (r *RoutingTable) GetPeers(x string) []*Peer {

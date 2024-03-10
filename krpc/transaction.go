@@ -1,4 +1,4 @@
-package dht
+package krpc
 
 import (
 	routingTable "bittorrent/routingTabel"
@@ -13,8 +13,6 @@ type TransactionManager struct {
 }
 
 type Transaction struct {
-	Id           string
-	DHT          *DHT
 	Query        *Message
 	Peers        []*routingTable.Peer
 	ResponseData []byte
@@ -28,10 +26,8 @@ func NewTransactionManager() *TransactionManager {
 	}
 }
 
-func NewTransaction(id string, d *DHT, query *Message, afterFunc func(*Transaction)) *Transaction {
+func NewTransaction(query *Message, afterFunc func(*Transaction)) *Transaction {
 	t := &Transaction{
-		Id:           id,
-		DHT:          d,
 		Query:        query,
 		Peers:        make([]*routingTable.Peer, 0),
 		ResponseData: nil,
@@ -48,7 +44,7 @@ func NewTransaction(id string, d *DHT, query *Message, afterFunc func(*Transacti
 }
 
 func (m *TransactionManager) Store(t *Transaction) {
-	m.TransactionMap.Store(t.Id, t)
+	m.TransactionMap.Store(t.Query.T, t)
 }
 
 func (m *TransactionManager) Load(id string) (*Transaction, bool) {
@@ -60,6 +56,10 @@ func (m *TransactionManager) Load(id string) (*Transaction, bool) {
 	return value.(*Transaction), true
 }
 
+func (m *TransactionManager) DeleteById(id string) {
+	m.TransactionMap.Delete(id)
+}
+
 func (m *TransactionManager) Delete(t *Transaction) {
-	m.TransactionMap.Delete(t.Id)
+	m.DeleteById(t.Query.T)
 }

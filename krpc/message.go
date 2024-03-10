@@ -1,4 +1,4 @@
-package dht
+package krpc
 
 import (
 	"bittorrent/bencode"

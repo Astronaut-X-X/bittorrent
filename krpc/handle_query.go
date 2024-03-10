@@ -1,14 +1,15 @@
-package dht
+package krpc
 
 import (
-	"bittorrent/utils"
 	"encoding/hex"
 	"fmt"
 	"net"
+
+	"bittorrent/utils"
 )
 
-func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
-	if err := d.routingTable.Add(m.A.Id, addr.IP.String(), addr.Port); err != nil {
+func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
+	if err := c.RoutingTable.Add(m.A.Id, addr.IP.String(), addr.Port); err != nil {
 		return
 	}
 
@@ -18,13 +19,13 @@ func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
 			T: m.T,
 			Y: r,
 			R: &R{
-				Id: d.routingTable.LocalId,
+				Id: c.LocalId,
 			},
 		}
-		sendMessage(d, msg, addr)
+		c.sendMessage(msg, addr)
 
 	case find_node:
-		peers := d.routingTable.GetPeers(m.A.Target)
+		peers := c.RoutingTable.GetPeers(m.A.Target)
 
 		nodes := make([]byte, 0)
 		for _, peer := range peers {
@@ -36,14 +37,14 @@ func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
 			T: m.T,
 			Y: r,
 			R: &R{
-				Id:    d.routingTable.LocalId,
+				Id:    c.LocalId,
 				Nodes: hex.EncodeToString(nodes),
 			},
 		}
-		sendMessage(d, msg, addr)
+		c.sendMessage(msg, addr)
 
 	case get_peers:
-		peers := d.routingTable.GetPeers(m.A.Target)
+		peers := c.RoutingTable.GetPeers(m.A.Target)
 
 		nodes := make([]byte, 0)
 		for _, peer := range peers {
@@ -55,12 +56,12 @@ func handleQuery(d *DHT, m *Message, addr *net.UDPAddr) {
 			T: m.T,
 			Y: r,
 			R: &R{
-				Id:    d.routingTable.LocalId,
+				Id:    c.LocalId,
 				Nodes: hex.EncodeToString(nodes),
 				Token: utils.RandomToken(),
 			},
 		}
-		sendMessage(d, msg, addr)
+		c.sendMessage(msg, addr)
 
 	case announce_peer:
 		fmt.Println("info_hash", m.A.InfoHash)

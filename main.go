@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	d, err := dht.NewDHT(dht.DefualtConfig())
+	d, err := dht.NewDHT(dht.DefaultConfig())
 	if err != nil {
 		fmt.Println(err.Error())
 		return

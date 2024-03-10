@@ -1,6 +1,8 @@
 package dht
 
 import (
+	"bittorrent/krpc"
+	"bittorrent/utils"
 	"context"
 	"fmt"
 	"log"
@@ -9,9 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	rt "bittorrent/routingTabel"
-	"bittorrent/utils"
 )
 
 var (
@@ -19,50 +18,47 @@ var (
 )
 
 type DHT struct {
-	Conn *net.UDPConn
+	Context context.Context
+	Cancel  context.CancelFunc
 
-	config *config
-
-	context context.Context
-	cancel  context.CancelFunc
-
-	tm           *TransactionManager
-	routingTable *rt.RoutingTable
-
-	log *log.Logger
+	Logger  *log.Logger
+	Config  *Config
+	LocalId string
+	Client  *krpc.Client
 }
 
-func NewDHT(c *config) (*DHT, error) {
+func NewDHT(config *Config) (*DHT, error) {
+	localId := utils.RandomID()
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
 	dht := &DHT{}
+	dht.Context, dht.Cancel = ctx, cancelFunc
 	dht.initLog()
+	dht.Config = config
+	dht.LocalId = localId
 
-	dht.context, dht.cancel = context.WithCancel(context.Background())
-
-	addr, err := net.ResolveUDPAddr("udp", c.Address)
+	client, err := krpc.NewClient(config.Address, localId, ctx)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		return nil, err
-	}
-	dht.Conn = conn
-	dht.Conn.SetReadBuffer(c.ReadBuffer)
-	dht.config = c
-	dht.tm = NewTransactionManager()
-
-	dht.routingTable = rt.NewRoutingTable(dht.context)
-	dht.routingTable.SetPingPeer(func(addr *net.UDPAddr) bool {
-		return <-Ping(dht, addr)
-	})
+	dht.Client = client
 
 	return dht, nil
+}
+
+func (d *DHT) initLog() {
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("无法打开日志文件: ", err)
+	}
+	_logFile = logFile
+	d.Logger = log.New(logFile, "", log.LstdFlags)
 }
 
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	//go d.getPeers()
+	go d.getPeers()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -74,52 +70,37 @@ func (d *DHT) Run() {
 }
 
 func (d *DHT) Stop() {
-	d.cancel()
+	d.Cancel()
 
-	if d.Conn != nil {
-		d.Conn.Close()
+	if d.Client != nil {
+		if err := d.Client.Close(); err != nil {
+			return
+		}
 	}
 	if _logFile != nil {
-		_logFile.Sync()
-		_logFile.Close()
+		if err := _logFile.Sync(); err != nil {
+			return
+		}
+		if err := _logFile.Close(); err != nil {
+			return
+		}
 	}
-}
-
-func (d *DHT) initLog() {
-	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("无法打开日志文件: ", err)
-	}
-	_logFile = logFile
-	d.log = log.New(logFile, "", log.LstdFlags)
 }
 
 func (d *DHT) sendPrimeNodes() {
-
-	for _, node := range DefualtConfig().PrimeNodes {
-
+	for _, node := range DefaultConfig().PrimeNodes {
 		addr, err := net.ResolveUDPAddr("udp", node)
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
 		}
 
-		fmt.Println(addr.IP, addr.Port)
-
-		msg := &Message{
-			T: utils.RandomT(),
-			Y: "q",
-			Q: "ping",
-			A: &A{
-				Id: d.routingTable.LocalId,
-			},
-		}
-
-		sendMessage(d, msg, addr)
+		d.Client.Ping(addr)
 	}
+}
 
-	time.Sleep(time.Second)
-	d.getPeer()
+func (d *DHT) receiving() {
+	d.Client.Receiving()
 }
 
 func (d *DHT) getPeers() {
@@ -128,67 +109,11 @@ func (d *DHT) getPeers() {
 	for {
 
 		select {
-		case <-d.context.Done():
+		case <-d.Context.Done():
 		case <-t.C:
 			infoHash := utils.RandomT()
-			peers := d.routingTable.GetPeers(infoHash)
-
-			for _, peer := range peers {
-				GetPeers(d, peer.Addr, infoHash, nil)
-			}
-
+			d.Client.GetPeers(infoHash)
 			t.Reset(time.Second)
 		}
-	}
-}
-
-func (d *DHT) getPeer() {
-	infoHash := utils.RandomT()
-	peers := d.routingTable.GetPeers(infoHash)
-
-	if len(peers) == 0 {
-		fmt.Println("[peers] length", 0)
-		return
-	}
-
-	GetPeers(d, peers[0].Addr, infoHash, peers[1:])
-}
-
-func (d *DHT) receiving() {
-	buffer := make([]byte, d.config.ReadBuffer)
-
-out:
-	for {
-		select {
-		case <-d.context.Done():
-			break out
-		default:
-			n, addr, err := d.Conn.ReadFromUDP(buffer)
-			if err != nil {
-				fmt.Printf("Error receiving data: %v\n", err)
-				continue
-			}
-
-			d.log.Println("[receive]", buffer[:n])
-
-			go d.process(addr, buffer[:n])
-		}
-	}
-
-	fmt.Println("receiving done")
-}
-
-func (d *DHT) process(addr *net.UDPAddr, data []byte) {
-	m, err := DecodeMessage(data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	switch m.Y {
-	case "q":
-		handleQuery(d, m, addr)
-	case "r":
-		handleResponse(d, m, addr)
 	}
 }
