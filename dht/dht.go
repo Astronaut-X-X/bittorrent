@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -101,14 +102,26 @@ func (d *DHT) receiving() {
 
 func (d *DHT) getPeers() {
 	t := time.NewTicker(time.Second)
+
+	var count int64 = 0
+
 	defer t.Stop()
 	for {
 
 		select {
 		case <-d.Context.Done():
 		case <-t.C:
-			infoHash := utils.RandomT()
-			d.Client.GetPeers(infoHash)
+			if count < 10 {
+				go func() {
+					atomic.AddInt64(&count, 1)
+					defer atomic.AddInt64(&count, -1)
+
+					infoHash := utils.RandomT()
+					if resp := d.Client.GetPeers(infoHash); resp != nil {
+						<-resp
+					}
+				}()
+			}
 			t.Reset(time.Second)
 		}
 	}
