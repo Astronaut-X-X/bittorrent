@@ -3,7 +3,6 @@ package routingTable
 import (
 	"bittorrent/utils"
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -61,10 +60,6 @@ func (r *RoutingTable) Add(id string, ip string, port int) error {
 	peer, err := NewPeer(id, ip, port)
 	if err != nil {
 		return err
-	}
-
-	if !r.pingPeer(peer.Addr) {
-		return errors.New("unable to connect peer")
 	}
 
 	bucket := r.GetBucket(r.LocalId, id)
