@@ -1,7 +1,7 @@
 package krpc
 
 import (
-	"fmt"
+	"bittorrent/logger"
 	"net"
 
 	"bittorrent/utils"
@@ -14,7 +14,7 @@ func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) bool {
 		return false
 	}
 
-	fmt.Println("[SEND]", string(msgByte))
+	logger.Println("[SEND]", string(msgByte))
 
 	return true
 }

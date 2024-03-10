@@ -2,6 +2,7 @@ package dht
 
 import (
 	"bittorrent/krpc"
+	"bittorrent/logger"
 	"bittorrent/utils"
 	"context"
 	"fmt"
@@ -13,15 +14,10 @@ import (
 	"time"
 )
 
-var (
-	_logFile *os.File
-)
-
 type DHT struct {
 	Context context.Context
 	Cancel  context.CancelFunc
 
-	Logger  *log.Logger
 	Config  *Config
 	LocalId string
 	Client  *krpc.Client
@@ -33,7 +29,6 @@ func NewDHT(config *Config) (*DHT, error) {
 
 	dht := &DHT{}
 	dht.Context, dht.Cancel = ctx, cancelFunc
-	dht.initLog()
 	dht.Config = config
 	dht.LocalId = localId
 
@@ -51,8 +46,8 @@ func (d *DHT) initLog() {
 	if err != nil {
 		fmt.Println("无法打开日志文件: ", err)
 	}
-	_logFile = logFile
-	d.Logger = log.New(logFile, "", log.LstdFlags)
+	logger.File = logFile
+	logger.Logger = log.New(logFile, "", log.LstdFlags)
 }
 
 func (d *DHT) Run() {
@@ -77,11 +72,11 @@ func (d *DHT) Stop() {
 			return
 		}
 	}
-	if _logFile != nil {
-		if err := _logFile.Sync(); err != nil {
+	if logger.File != nil {
+		if err := logger.File.Sync(); err != nil {
 			return
 		}
-		if err := _logFile.Close(); err != nil {
+		if err := logger.File.Close(); err != nil {
 			return
 		}
 	}
