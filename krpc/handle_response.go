@@ -60,6 +60,8 @@ func handleNodes(c *Client, m *Message) {
 	}
 
 	c.RoutingTable.AddPeers(peers)
+
+	go c.OnHandleNodes(peers)
 }
 
 func handleValues(c *Client, m *Message) {

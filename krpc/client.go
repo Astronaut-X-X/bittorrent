@@ -19,6 +19,7 @@ type Client struct {
 	RoutingTable       *routingTable.RoutingTable
 
 	OnAnnouncePeer func(*Node, *Message)
+	OnHandleNodes  func([]*routingTable.Peer)
 }
 
 func NewClient(addr string, localId string, ctx context.Context) (*Client, error) {

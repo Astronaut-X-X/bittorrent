@@ -3,6 +3,7 @@ package dht
 import (
 	"bittorrent/krpc"
 	"bittorrent/logger"
+	routingTable "bittorrent/routingTabel"
 	"bittorrent/utils"
 	"context"
 	"fmt"
@@ -39,6 +40,7 @@ func NewDHT(config *Config) (*DHT, error) {
 		return nil, err
 	}
 	dht.Client = client
+	dht.initCallback()
 
 	return dht, nil
 }
@@ -154,5 +156,17 @@ func (d *DHT) findNode() {
 			}
 			t.Reset(time.Second)
 		}
+	}
+}
+
+func (d *DHT) initCallback() {
+	d.Client.OnHandleNodes = func(peers []*routingTable.Peer) {
+		for _, peer := range peers {
+			d.Client.Ping(peer.Addr)
+		}
+	}
+
+	d.Client.OnAnnouncePeer = func(node *krpc.Node, message *krpc.Message) {
+		fmt.Println(node, message)
 	}
 }
