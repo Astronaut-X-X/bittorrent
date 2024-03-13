@@ -132,7 +132,9 @@ func (d *DHT) getPeers() {
 }
 
 func (d *DHT) findNode() {
-	t := time.NewTicker(time.Millisecond * 200)
+	time_ := time.Millisecond * 200
+
+	t := time.NewTicker(time_)
 
 	const Number = 512
 	var count int64 = 0
@@ -154,7 +156,7 @@ func (d *DHT) findNode() {
 					}
 				}()
 			}
-			t.Reset(time.Second)
+			t.Reset(time_)
 		}
 	}
 }
