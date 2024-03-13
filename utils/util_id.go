@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/big"
 	"math/rand"
+	"time"
 )
 
 func RandomID() string {
@@ -24,7 +25,13 @@ func RandomToken() string {
 }
 
 func RandomT() string {
-	return RandomID()
+	rand.NewSource(time.Now().Unix())
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, 4)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
 
 func FirstIndex(i *big.Int) int {
