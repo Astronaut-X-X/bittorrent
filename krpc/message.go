@@ -4,6 +4,7 @@ import (
 	"bittorrent/bencode"
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 )
 
@@ -48,8 +49,11 @@ func DecodeMessage(data []byte) (*Message, error) {
 		return nil, err
 	}
 
-	msg := mapToMessage(info.(map[string]interface{}))
-	return msg, nil
+	if mapInfo, ok := info.(map[string]interface{}); !ok {
+		return nil, errors.New(fmt.Sprintf("decode error data: %v", data))
+	} else {
+		return mapToMessage(mapInfo), nil
+	}
 }
 
 func EncodeMessage(msg *Message) []byte {
