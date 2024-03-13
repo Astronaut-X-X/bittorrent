@@ -24,6 +24,10 @@ func RandomToken() string {
 	return RandomID()
 }
 
+func RandomInfoHash() string {
+	return RandomID()
+}
+
 func RandomT() string {
 	rand.NewSource(time.Now().Unix())
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

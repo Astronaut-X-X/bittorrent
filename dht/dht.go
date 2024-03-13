@@ -120,7 +120,7 @@ func (d *DHT) getPeers() {
 					atomic.AddInt64(&count, 1)
 					defer atomic.AddInt64(&count, -1)
 
-					infoHash := utils.RandomT()
+					infoHash := utils.RandomInfoHash()
 					if resp := d.Client.GetPeers(infoHash); resp != nil {
 						<-resp
 					}
@@ -148,7 +148,7 @@ func (d *DHT) findNode() {
 					atomic.AddInt64(&count, 1)
 					defer atomic.AddInt64(&count, -1)
 
-					infoHash := utils.RandomT()
+					infoHash := utils.RandomInfoHash()
 					if resp := d.Client.FindNode(infoHash); resp != nil {
 						<-resp
 					}
