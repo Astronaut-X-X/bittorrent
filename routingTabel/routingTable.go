@@ -41,7 +41,7 @@ func NewRoutingTable(localId string, context context.Context) *RoutingTable {
 	}
 
 	go table.RunTimeRefresh()
-	go table.RunTimePrint()
+	//go table.RunTimePrint()
 
 	return table
 }

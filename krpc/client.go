@@ -81,6 +81,8 @@ func (c *Client) Receiving() {
 }
 
 func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
+	formatData(data)
+
 	m, err := DecodeMessage(data)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -97,4 +99,19 @@ func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 	case "e":
 		handleError(c, m, addr)
 	}
+}
+
+func formatData(data []byte) {
+	for i := range data {
+		if data[i] == 10 {
+			data[i] = 64
+			continue
+		}
+		if data[i] == 13 {
+			data[i] = 64
+			continue
+		}
+	}
+
+	logger.Println("[RECEIVE] [origin]", string(data))
 }
