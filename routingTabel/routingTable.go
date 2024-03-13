@@ -1,6 +1,7 @@
 package routingTable
 
 import (
+	"bittorrent/logger"
 	"bittorrent/utils"
 	"context"
 	"fmt"
@@ -89,9 +90,10 @@ func (r *RoutingTable) GetPeer(x string) *Peer {
 		if distance.Cmp(minNum) < 0 {
 			minNum = distance
 			j = i
-
 		}
 	}
+
+	logger.Println("[peer]", j, peers[j].Addr)
 
 	return peers[j]
 }
