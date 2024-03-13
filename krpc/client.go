@@ -107,7 +107,23 @@ func formatData(data []byte) {
 			data[i] = 64
 			continue
 		}
+		if data[i] == 11 {
+			data[i] = 64
+			continue
+		}
+		if data[i] == 12 {
+			data[i] = 64
+			continue
+		}
 		if data[i] == 13 {
+			data[i] = 64
+			continue
+		}
+		if data[i] == 27 {
+			data[i] = 64
+			continue
+		}
+		if data[i] == 156 {
 			data[i] = 64
 			continue
 		}
