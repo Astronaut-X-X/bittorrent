@@ -2,9 +2,12 @@ package utils
 
 import (
 	"encoding/hex"
+	"fmt"
+	"io"
 	"math"
 	"math/big"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -17,7 +20,8 @@ func RandomID() string {
 		num = new(big.Int).Sub(num, big.NewInt(randNum))
 	}
 
-	return string(num.Bytes())
+	id := string(num.Bytes())
+	return GetStoreId(id)
 }
 
 func RandomToken() string {
@@ -81,4 +85,26 @@ func toUint(s string) *big.Int {
 
 func ParseIdToByte(id string) []byte {
 	return []byte(id)
+}
+
+func GetStoreId(id string) string {
+	file, err := os.Open("_id.case")
+	if err != nil && os.IsNotExist(err) {
+		file, err = os.Create("example.txt")
+		if err != nil {
+			fmt.Println("file.Write err", err.Error())
+		}
+
+		if _, err = file.Write([]byte(id)); err != nil {
+			fmt.Println("file.Write err", err.Error())
+		}
+
+		return id
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+
+	}
+	return string(data)
 }

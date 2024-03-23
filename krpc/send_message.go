@@ -14,7 +14,7 @@ func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) bool {
 		return false
 	}
 
-	logger.Println("[SEND]", formatData(msgByte))
+	logger.Println("[SEND]", Print(msg))
 
 	return true
 }

@@ -82,7 +82,7 @@ func (c *Client) Receiving() {
 
 func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 
-	logger.Println("[RECEIVE] [origin]", formatData(data))
+	//logger.Println("[RECEIVE] [origin]", formatData(data))
 
 	m, err := DecodeMessage(data)
 	if err != nil {
