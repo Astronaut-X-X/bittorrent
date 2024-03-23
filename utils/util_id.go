@@ -88,9 +88,11 @@ func ParseIdToByte(id string) []byte {
 }
 
 func GetStoreId(id string) string {
-	file, err := os.Open("_id.case")
+	const filename = "_id.case"
+
+	file, err := os.Open(filename)
 	if err != nil && os.IsNotExist(err) {
-		file, err = os.Create("example.txt")
+		file, err = os.Create(filename)
 		if err != nil {
 			fmt.Println("file.Write err", err.Error())
 		}
