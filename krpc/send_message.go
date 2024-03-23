@@ -50,8 +50,9 @@ func (c *Client) FindNode(target string) chan bool {
 		Y: q,
 		Q: find_node,
 		A: &A{
-			Id:     c.LocalId,
-			Target: target,
+			Id: c.LocalId,
+			//Target: target,
+			Target: c.RoutingTable.LocalId,
 		},
 	}
 
