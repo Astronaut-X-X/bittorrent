@@ -150,8 +150,8 @@ func (d *DHT) findNode() {
 					atomic.AddInt64(&count, 1)
 					defer atomic.AddInt64(&count, -1)
 
-					infoHash := utils.RandomInfoHash()
-					if resp := d.Client.FindNode(infoHash); resp != nil {
+					//infoHash := utils.RandomInfoHash()
+					if resp := d.Client.FindNode(d.LocalId); resp != nil {
 						<-resp
 					}
 				}()
