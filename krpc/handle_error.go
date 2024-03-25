@@ -4,6 +4,5 @@ import (
 	"net"
 )
 
-func handleError(d *Client, m *Message, addr *net.UDPAddr) {
-
+func handleError(c *Client, m *Message, addr *net.UDPAddr) {
 }

@@ -12,7 +12,6 @@ import (
 )
 
 func RandomID() string {
-
 	num := big.NewInt(int64(rand.Uint32()))
 	for i := 1; i < 5; i++ {
 		randNum := rand.Int63n(math.MaxUint32)
@@ -40,6 +39,10 @@ func RandomT() string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func IndexByXOR(x, y string) int {
+	return FirstIndex(XOR(x, y)) - 1 // 0-160
 }
 
 func FirstIndex(i *big.Int) int {

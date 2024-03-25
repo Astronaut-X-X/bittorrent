@@ -1,0 +1,19 @@
+# Address config
+address: ":6881"
+
+# UDP config
+read-buffer-size: 10240
+
+# KRPC config
+prime-nodes:
+  - "router.bittorrent.com:6881"
+  - "router.utorrent.com:6881"
+  - "dht.transmissionbt.com:6881"
+transaction-keep-time: 180  # uint second
+transaction-ticker-time: 180  # uint second
+
+# DHT config
+find-node-speed: 1000  # uint millisecond
+
+# routing config
+expiration-time: 15  # uint minute

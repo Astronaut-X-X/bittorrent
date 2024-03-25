@@ -1,46 +1,44 @@
 package krpc
 
 import (
-	routingTable "bittorrent/routingTabel"
+	"bittorrent/config"
 	"sync"
 	"time"
 )
 
-const Timeout = time.Second * 20
-
 type TransactionManager struct {
 	TransactionMap sync.Map
+	keepTime       time.Duration
+	tickerTime     time.Duration
+	timer          *time.Timer
 }
 
 type Transaction struct {
 	Query        *Message
-	Peers        []*routingTable.Peer
+	Node         []*Node
 	ResponseData []byte
 	Response     chan bool
-	timer        *time.Timer
+	Time         time.Time
 }
 
-func NewTransactionManager() *TransactionManager {
-	return &TransactionManager{
+func NewTransactionManager(config *config.Config) *TransactionManager {
+	manager := &TransactionManager{
 		TransactionMap: sync.Map{},
+		keepTime:       config.TransactionKeepTime,
+		tickerTime:     config.TransactionTickerTime,
 	}
+	manager.timer = time.AfterFunc(config.TransactionTickerTime, manager.clearTransaction)
+
+	return manager
 }
 
-func NewTransaction(query *Message, afterFunc func(*Transaction)) *Transaction {
-	t := &Transaction{
+func NewTransaction(query *Message) *Transaction {
+	return &Transaction{
 		Query:        query,
-		Peers:        make([]*routingTable.Peer, 0),
+		Node:         make([]*Node, 0),
 		ResponseData: nil,
 		Response:     make(chan bool, 1),
-		timer:        nil,
 	}
-
-	// Transaction timeout
-	t.timer = time.AfterFunc(Timeout, func() {
-		afterFunc(t)
-	})
-
-	return t
 }
 
 func (m *TransactionManager) Store(t *Transaction) {
@@ -62,4 +60,19 @@ func (m *TransactionManager) DeleteById(id string) {
 
 func (m *TransactionManager) Delete(t *Transaction) {
 	m.DeleteById(t.Query.T)
+}
+
+func (m *TransactionManager) clearTransaction() {
+	m.TransactionMap.Range(func(key, value any) bool {
+		transaction := value.(*Transaction)
+		if transaction.Time.Add(m.keepTime).Before(time.Now()) {
+			m.TransactionMap.Delete(key)
+		}
+		return true
+	})
+	m.timer.Reset(m.tickerTime)
+}
+
+func (m *TransactionManager) Close() {
+	m.timer.Stop()
 }

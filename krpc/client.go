@@ -1,29 +1,28 @@
 package krpc
 
 import (
+	"bittorrent/config"
 	"bittorrent/logger"
 	"context"
 	"fmt"
 	"net"
-
-	"bittorrent/routingTabel"
 )
 
-const ReadBuffer int = 10240
-
 type Client struct {
+	context context.Context
+
 	Conn               *net.UDPConn
 	LocalId            string
-	context            context.Context
+	BufferSize         int
 	TransactionManager *TransactionManager
-	RoutingTable       *routingTable.RoutingTable
-
-	OnAnnouncePeer func(*Node, *Message)
-	OnHandleNodes  func([]*routingTable.Peer)
+	OnAnnouncePeer     func(*Node, *Message)
+	OnGetPeers         func(*Node, *Message)
+	HandleNode         func(*Node)
+	SearchNode         func(string) []*Node
 }
 
-func NewClient(addr string, localId string, ctx context.Context) (*Client, error) {
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+func NewClient(ctx context.Context, localId string, config *config.Config) (*Client, error) {
+	udpAddr, err := net.ResolveUDPAddr("udp", config.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -33,25 +32,13 @@ func NewClient(addr string, localId string, ctx context.Context) (*Client, error
 		return nil, err
 	}
 
-	if err = conn.SetReadBuffer(ReadBuffer); err != nil {
-		return nil, err
-	}
-
-	transactionManager := NewTransactionManager()
-
-	table := routingTable.NewRoutingTable(localId, ctx)
-
 	cli := &Client{
+		context:            ctx,
 		Conn:               conn,
 		LocalId:            localId,
-		context:            ctx,
-		TransactionManager: transactionManager,
-		RoutingTable:       table,
+		BufferSize:         config.ReadBufferSize,
+		TransactionManager: NewTransactionManager(config),
 	}
-
-	table.SetPingPeer(func(addr *net.UDPAddr) bool {
-		return <-cli.Ping(addr)
-	})
 
 	return cli, err
 }
@@ -61,11 +48,12 @@ func (c *Client) WriteToUDP(b []byte, addr *net.UDPAddr) (int, error) {
 }
 
 func (c *Client) Close() error {
+	c.TransactionManager.Close()
 	return c.Conn.Close()
 }
 
 func (c *Client) Receiving() {
-	buffer := make([]byte, 10240)
+	buffer := make([]byte, c.BufferSize)
 	for {
 		select {
 		case <-c.context.Done():
@@ -81,9 +69,6 @@ func (c *Client) Receiving() {
 }
 
 func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
-
-	//logger.Println("[RECEIVE] [origin]", formatData(data))
-
 	m, err := DecodeMessage(data)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -102,33 +87,14 @@ func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 	}
 }
 
-func formatData(data []byte) string {
-	for i := range data {
-		if data[i] == 10 {
-			data[i] = 64
-			continue
-		}
-		if data[i] == 11 {
-			data[i] = 64
-			continue
-		}
-		if data[i] == 12 {
-			data[i] = 64
-			continue
-		}
-		if data[i] == 13 {
-			data[i] = 64
-			continue
-		}
-		if data[i] == 27 {
-			data[i] = 64
-			continue
-		}
-		if data[i] == 156 {
-			data[i] = 64
-			continue
-		}
-	}
+func (c *Client) SetOnAnnouncePeer(f func(*Node, *Message)) {
+	c.OnAnnouncePeer = f
+}
 
-	return string(data)
+func (c *Client) SetOnGetPeers(f func(*Node, *Message)) {
+	c.OnGetPeers = f
+}
+
+func (c *Client) SetHandleNode(f func(*Node)) {
+	c.HandleNode = f
 }

@@ -1,25 +1,35 @@
 package krpc
 
 import (
-	"bittorrent/logger"
+	"fmt"
 	"net"
 
+	"bittorrent/logger"
 	"bittorrent/utils"
 )
 
-func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) bool {
+func (c *Client) sendMessageAddr(msg *Message, addr string) {
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	c.sendMessage(msg, udpAddr)
+
+	logger.Println("[SEND]", Print(msg))
+}
+
+func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 	msgByte := EncodeMessage(msg)
 
 	if _, err := c.WriteToUDP(msgByte, addr); err != nil {
-		return false
+		fmt.Println(err.Error())
+		return
 	}
-
-	logger.Println("[SEND]", Print(msg))
-
-	return true
 }
 
-func (c *Client) Ping(addr *net.UDPAddr) chan bool {
+func (c *Client) Ping(addr string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -29,49 +39,24 @@ func (c *Client) Ping(addr *net.UDPAddr) chan bool {
 		},
 	}
 
-	if !c.sendMessage(msg, addr) {
-		return nil
-	}
-
-	t := NewTransaction(msg, func(t *Transaction) { t.Response <- false })
-	c.TransactionManager.Store(t)
-
-	return t.Response
+	c.sendMessageAddr(msg, addr)
 }
 
-func (c *Client) FindNode(target string) chan bool {
-	peer := c.RoutingTable.GetPeer(target)
-	if peer == nil {
-		return nil
-	}
-
+func (c *Client) FindNode(addr string, target string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
 		Q: find_node,
 		A: &A{
-			Id: c.LocalId,
-			//Target: target,
-			Target: c.RoutingTable.LocalId,
+			Id:     c.LocalId,
+			Target: target,
 		},
 	}
 
-	if !c.sendMessage(msg, peer.Addr) {
-		return nil
-	}
-
-	t := NewTransaction(msg, func(t *Transaction) { t.Response <- false })
-	c.TransactionManager.Store(t)
-
-	return t.Response
+	c.sendMessageAddr(msg, addr)
 }
 
-func (c *Client) GetPeers(infoHash string) chan bool {
-	peer := c.RoutingTable.GetPeer(infoHash)
-	if peer == nil {
-		return nil
-	}
-
+func (c *Client) GetPeers(addr string, infoHash string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -82,18 +67,11 @@ func (c *Client) GetPeers(infoHash string) chan bool {
 		},
 	}
 
-	if !c.sendMessage(msg, peer.Addr) {
-		return nil
-	}
-
-	t := NewTransaction(msg, func(t *Transaction) { t.Response <- false })
-	c.TransactionManager.Store(t)
-
-	return t.Response
+	c.sendMessageAddr(msg, addr)
 }
 
 // AnnouncePeer TODO
-func (c *Client) AnnouncePeer(addr *net.UDPAddr, infoHash string) chan bool {
+func (c *Client) AnnouncePeer(addr string, infoHash string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -107,12 +85,5 @@ func (c *Client) AnnouncePeer(addr *net.UDPAddr, infoHash string) chan bool {
 		},
 	}
 
-	if !c.sendMessage(msg, addr) {
-		return nil
-	}
-
-	t := NewTransaction(msg, func(t *Transaction) { t.Response <- false })
-	c.TransactionManager.Store(t)
-
-	return t.Response
+	c.sendMessageAddr(msg, addr)
 }

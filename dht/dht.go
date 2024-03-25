@@ -1,17 +1,17 @@
 package dht
 
 import (
+	_ "bittorrent/logger"
+	"bittorrent/routing"
+
+	"bittorrent/config"
 	"bittorrent/krpc"
 	"bittorrent/logger"
-	routingTable "bittorrent/routingTabel"
 	"bittorrent/utils"
 	"context"
 	"fmt"
-	"log"
-	"net"
 	"os"
 	"os/signal"
-	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -20,44 +20,63 @@ type DHT struct {
 	Context context.Context
 	Cancel  context.CancelFunc
 
-	Config  *Config
-	LocalId string
+	NodeId  string
+	Config  *config.Config
 	Client  *krpc.Client
+	Routing routing.IRoutingTable
+
+	NodeQueue []string
 }
 
-func NewDHT(config *Config) (*DHT, error) {
-	localId := utils.RandomID()
+func NewDHT(config *config.Config) (*DHT, error) {
+	nodeId := utils.RandomID()
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	dht := &DHT{}
-	dht.initLog()
 	dht.Context, dht.Cancel = ctx, cancelFunc
 	dht.Config = config
-	dht.LocalId = localId
+	dht.NodeId = nodeId
 
-	client, err := krpc.NewClient(config.Address, localId, ctx)
+	dht.Routing = routing.NewRoutingTable(ctx, nodeId, config.ExpirationTime)
+	client, err := krpc.NewClient(ctx, nodeId, config)
 	if err != nil {
 		return nil, err
 	}
 	dht.Client = client
-	dht.initCallback()
+
+	client.HandleNode = func(node *krpc.Node) {
+		// Add to routing
+		dht.Routing.Insert(node.Id, node.Addr.IP.String(), node.Addr.Port)
+		// Add to queue
+		addr := fmt.Sprintf("%s:%d", node.Addr.IP.String(), node.Addr.Port)
+		dht.NodeQueue = append(dht.NodeQueue, addr)
+
+	}
+	client.OnAnnouncePeer = func(node *krpc.Node, message *krpc.Message) {
+		fmt.Println("[OnAnnouncePeer]", node)
+	}
+	client.OnGetPeers = func(node *krpc.Node, message *krpc.Message) {
+		fmt.Println("[OnGetPeers]", node)
+	}
+	client.SearchNode = func(infoHash string) []*krpc.Node {
+		kNodes := make([]*krpc.Node, 0, 8)
+		rNodes := dht.Routing.Neighbouring(infoHash)
+		for _, rNode := range rNodes {
+			kNode := &krpc.Node{
+				Id:   rNode.NodeId,
+				Addr: rNode.Addr,
+			}
+			kNodes = append(kNodes, kNode)
+		}
+		return kNodes
+	}
 
 	return dht, nil
-}
-
-func (d *DHT) initLog() {
-	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Println("无法打开日志文件: ", err)
-	}
-	logger.File = logFile
-	logger.Logger = log.New(logFile, "", log.LstdFlags)
 }
 
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	//go d.getPeers()
 	go d.findNode()
 
 	stop := make(chan os.Signal, 1)
@@ -88,13 +107,7 @@ func (d *DHT) Stop() {
 }
 
 func (d *DHT) sendPrimeNodes() {
-	for _, node := range DefaultConfig().PrimeNodes {
-		addr, err := net.ResolveUDPAddr("udp", node)
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
-
+	for _, addr := range d.Config.PrimeNodes {
 		d.Client.Ping(addr)
 	}
 }
@@ -103,72 +116,19 @@ func (d *DHT) receiving() {
 	d.Client.Receiving()
 }
 
-func (d *DHT) getPeers() {
-	t := time.NewTicker(time.Second)
-
-	const Number = 512
-	var count int64 = 0
-
-	defer t.Stop()
-	for {
-
-		select {
-		case <-d.Context.Done():
-		case <-t.C:
-			if count < Number {
-				go func() {
-					atomic.AddInt64(&count, 1)
-					defer atomic.AddInt64(&count, -1)
-
-					infoHash := utils.RandomInfoHash()
-					if resp := d.Client.GetPeers(infoHash); resp != nil {
-						<-resp
-					}
-				}()
-			}
-			t.Reset(time.Second)
-		}
-	}
-}
-
 func (d *DHT) findNode() {
-	time_ := time.Millisecond * 200
-
-	t := time.NewTicker(time_)
-
-	const Number = 512
-	var count int64 = 0
-
+	t := time.NewTicker(d.Config.FindNodeSpeed)
 	defer t.Stop()
 	for {
-
 		select {
 		case <-d.Context.Done():
 		case <-t.C:
-			if count < Number {
-				go func() {
-					atomic.AddInt64(&count, 1)
-					defer atomic.AddInt64(&count, -1)
-
-					infoHash := utils.RandomInfoHash()
-					if resp := d.Client.FindNode(infoHash); resp != nil {
-						<-resp
-					}
-				}()
+			if len(d.NodeQueue) == 0 {
+				d.NodeQueue = append(d.NodeQueue, d.Config.PrimeNodes...)
 			}
-			t.Reset(time_)
+			node := d.NodeQueue[0]
+			d.NodeQueue = d.NodeQueue[1:]
+			d.Client.FindNode(node, d.NodeId)
 		}
-	}
-}
-
-func (d *DHT) initCallback() {
-	d.Client.OnHandleNodes = func(peers []*routingTable.Peer) {
-		for _, peer := range peers {
-			d.Client.Ping(peer.Addr)
-		}
-	}
-
-	d.Client.OnAnnouncePeer = func(node *krpc.Node, message *krpc.Message) {
-		fmt.Println(node, message)
 	}
 }
