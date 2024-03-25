@@ -17,7 +17,9 @@ func (c *Client) sendMessageAddr(msg *Message, addr string) {
 
 	c.sendMessage(msg, udpAddr)
 
-	logger.Println("[SEND]", Print(msg))
+	c.TransactionManager.Store(NewTransaction(msg))
+
+	logger.Println("[SEND]", addr, Print(msg))
 }
 
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
