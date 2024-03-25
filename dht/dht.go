@@ -56,7 +56,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		fmt.Println("[OnAnnouncePeer]", node)
 	}
 	client.OnGetPeers = func(node *krpc.Node, message *krpc.Message) {
-		fmt.Println("[OnGetPeers]", node)
+		fmt.Println("[OnGetPeers]", message.A.InfoHash, node.Addr.String())
 	}
 	client.SearchNode = func(infoHash string) []*krpc.Node {
 		kNodes := make([]*krpc.Node, 0, 8)
