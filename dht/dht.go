@@ -78,6 +78,7 @@ func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
 	go d.findNode()
+	go d.getPeers()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -130,5 +131,13 @@ func (d *DHT) findNode() {
 			d.NodeQueue = d.NodeQueue[1:]
 			d.Client.FindNode(node, d.NodeId)
 		}
+	}
+}
+
+func (d *DHT) getPeers() {
+	InfoHash := []byte{0x1D, 0x1B, 0x5A, 0xEE, 0x65, 0xBB, 0x74, 0xBF, 0x71, 0x7F, 0x8B, 0x85, 0x74, 0x3D, 0xF6, 0xDD, 0x48, 0x68, 0xCD, 0xD9}
+
+	for _, addr := range d.Config.PrimeNodes {
+		d.Client.GetPeers(addr, string(InfoHash))
 	}
 }
