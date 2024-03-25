@@ -57,7 +57,7 @@ func handleNodes(c *Client, m *Message) []*Node {
 }
 
 func handleValues(c *Client, m *Message) {
-	values := make([]string, 0)
+	values := make([]interface{}, 0)
 	if m.R.Values != nil {
 		values = m.R.Values
 	}

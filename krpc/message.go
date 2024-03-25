@@ -36,10 +36,10 @@ type A struct {
 }
 
 type R struct {
-	Id     string   `json:"id"`
-	Nodes  string   `json:"nodes,omitempty"`
-	Token  string   `json:"token,omitempty"`
-	Values []string `json:"values,omitempty"`
+	Id     string        `json:"id"`
+	Nodes  string        `json:"nodes,omitempty"`
+	Token  string        `json:"token,omitempty"`
+	Values []interface{} `json:"values,omitempty"`
 }
 
 func DecodeMessage(data []byte) (*Message, error) {
@@ -176,7 +176,7 @@ func mapToR(rMap map[string]interface{}) *R {
 		R.Token = rMap["token"].(string)
 	}
 	if rMap["values"] != nil {
-		R.Values = rMap["values"].([]string)
+		R.Values = rMap["values"].([]interface{})
 	}
 	return R
 }
