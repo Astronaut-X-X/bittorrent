@@ -39,8 +39,8 @@ func (b *Bucket) GetNodes() []*Node {
 }
 
 func (b *Bucket) Insert(node *Node) {
-	if node = b.GetNode(node.NodeId); node != nil {
-		node.Create = time.Now()
+	if tempNode := b.GetNode(node.NodeId); tempNode != nil {
+		tempNode.Create = time.Now()
 		return
 	}
 
