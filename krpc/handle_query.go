@@ -40,6 +40,8 @@ func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 		msg.R.Nodes = string(byteData)
 		msg.R.Token = utils.RandomToken()
 		c.sendMessage(msg, addr)
+		// on get_peers
+		c.OnGetPeers(node, m)
 
 	case announce_peer:
 		//fmt.Println("info_hash", m.A.InfoHash)
