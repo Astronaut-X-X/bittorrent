@@ -24,8 +24,10 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 
 	case get_peers:
 		if len(m.R.Nodes) > 0 {
-			handleNodes(c, m)
-			//c.GetPeers(transaction.Query.A.InfoHash)
+			nodes := handleNodes(c, m)
+			for _, node := range nodes {
+				c.GetPeers(node.Addr.String(), transaction.Query.A.InfoHash)
+			}
 		}
 		if len(m.R.Values) > 0 {
 			handleValues(c, m)
@@ -36,11 +38,12 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 
 	}
 
-	transaction.Response <- true
+	//transaction.Response <- true
 	c.TransactionManager.Delete(transaction)
 }
 
-func handleNodes(c *Client, m *Message) {
+func handleNodes(c *Client, m *Message) []*Node {
+	nodes := make([]*Node, 0)
 	length := len(m.R.Nodes)
 	for i := 0; i < length; i += 26 {
 		id := m.R.Nodes[i+20 : i+20]
@@ -48,7 +51,9 @@ func handleNodes(c *Client, m *Message) {
 		addr := utils.ParseByteToAddr(data)
 		node := NewNode(id, addr)
 		c.HandleNode(node)
+		nodes = append(nodes, node)
 	}
+	return nodes
 }
 
 func handleValues(c *Client, m *Message) {
