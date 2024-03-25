@@ -91,7 +91,7 @@ func (r *Table) Neighbouring(nodeId string) []*Node {
 		}
 
 		if ri < 160 {
-			nodes_ := r.Bucket[li].GetNodes()
+			nodes_ := r.Bucket[ri].GetNodes()
 			if nodes, full := push(nodes, nodes_); full {
 				return nodes
 			}
