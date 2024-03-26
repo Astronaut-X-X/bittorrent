@@ -15,6 +15,8 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		return
 	}
 
+	NoNeedDeleteTransaction := false
+
 	switch transaction.Query.Q {
 	case ping:
 		// do nothing
@@ -25,14 +27,10 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	case get_peers:
 		if len(m.R.Nodes) > 0 {
 			nodes := handleNodes(c, m)
-			transaction.Node = append(transaction.Node, nodes...)
-			if len(transaction.Node) == 0 {
-				fmt.Println("[get_peers] no find")
-				break
+			for _, node := range nodes {
+				c.GetPeersContinuous(node.Addr.String(), m.T, transaction.Query.A.InfoHash)
 			}
-			newNode := transaction.Node[0]
-			transaction.Node = transaction.Node[1:]
-			c.GetPeersContinuous(newNode.Addr.String(), m.T, transaction.Query.A.InfoHash)
+			NoNeedDeleteTransaction = true
 		}
 		if len(m.R.Values) > 0 {
 			handleValues(c, m, transaction.Query)
@@ -44,6 +42,10 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	}
 
 	//transaction.Response <- true
+	if NoNeedDeleteTransaction {
+		return
+	}
+
 	c.TransactionManager.Delete(transaction)
 }
 
