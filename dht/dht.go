@@ -82,7 +82,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	go d.findNode()
+	//go d.findNode()
 	go d.getPeers()
 
 	stop := make(chan os.Signal, 1)
