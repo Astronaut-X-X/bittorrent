@@ -66,7 +66,7 @@ func handleValues(c *Client, m *Message, q *Message) {
 	}
 
 	for _, value := range values {
-		byteValue := value.([]byte)
+		byteValue := []byte(value.(string))
 		if len(byteValue) != 6 {
 			continue
 		}
