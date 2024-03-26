@@ -22,6 +22,18 @@ func (c *Client) sendMessageAddr(msg *Message, addr string) {
 	logger.Println("[SEND]", addr, Print(msg))
 }
 
+func (c *Client) sendMessageContinuous(msg *Message, addr string) {
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	c.sendMessage(msg, udpAddr)
+
+	logger.Println("[SEND]", addr, Print(msg))
+}
+
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 	msgByte := EncodeMessage(msg)
 
@@ -70,6 +82,20 @@ func (c *Client) GetPeers(addr string, infoHash string) {
 	}
 
 	c.sendMessageAddr(msg, addr)
+}
+
+func (c *Client) GetPeersContinuous(addr string, T string, infoHash string) {
+	msg := &Message{
+		T: T,
+		Y: q,
+		Q: get_peers,
+		A: &A{
+			Id:       c.LocalId,
+			InfoHash: infoHash,
+		},
+	}
+
+	c.sendMessageContinuous(msg, addr)
 }
 
 // AnnouncePeer TODO
