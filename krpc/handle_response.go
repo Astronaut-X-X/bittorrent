@@ -25,9 +25,13 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	case get_peers:
 		if len(m.R.Nodes) > 0 {
 			nodes := handleNodes(c, m)
-			for _, node := range nodes {
-				c.GetPeers(node.Addr.String(), transaction.Query.A.InfoHash)
+
+			if len(transaction.Node) == 0 {
+				transaction.Node = append(transaction.Node, nodes...)
 			}
+			newNode := transaction.Node[0]
+			transaction.Node = transaction.Node[1:]
+			c.GetPeers(newNode.Addr.String(), transaction.Query.A.InfoHash)
 		}
 		if len(m.R.Values) > 0 {
 			handleValues(c, m, transaction.Query)
