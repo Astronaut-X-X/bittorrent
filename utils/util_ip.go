@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"net"
 )
@@ -31,14 +32,27 @@ func ParseAddrToByte(addr *net.UDPAddr) []byte {
 	return append(addr.IP.To4(), byte(addr.Port/256), byte(addr.Port%256))
 }
 
-func ParseByteToAddr(data []byte) *net.UDPAddr {
+func ParseByteToIpPort(data []byte) (net.IP, int, error) {
+	if len(data) != 6 {
+		return nil, 0, errors.New("error data")
+	}
+
 	ip := net.IPv4(data[0], data[1], data[2], data[3])
 	port := int(data[4])*256 + int(data[5])
 
-	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", ip.String(), port))
+	return ip, port, nil
+}
+
+func ParseByteToAddr(data []byte) (*net.UDPAddr, error) {
+	ip, port, err := ParseByteToIpPort(data)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return addr
+	addr := &net.UDPAddr{
+		IP:   ip,
+		Port: port,
+	}
+
+	return addr, nil
 }

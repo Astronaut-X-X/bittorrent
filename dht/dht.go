@@ -3,6 +3,7 @@ package dht
 import (
 	_ "bittorrent/logger"
 	"bittorrent/routing"
+	"encoding/hex"
 
 	"bittorrent/config"
 	"bittorrent/krpc"
@@ -44,21 +45,22 @@ func NewDHT(config *config.Config) (*DHT, error) {
 	}
 	dht.Client = client
 
-	client.HandleNode = func(node *krpc.Node) {
+	client.SetHandleNode(func(node *krpc.Node, kind byte) {
 		// Add to routing
 		dht.Routing.Insert(node.Id, node.Addr.IP.String(), node.Addr.Port)
 		// Add to queue
-		addr := fmt.Sprintf("%s:%d", node.Addr.IP.String(), node.Addr.Port)
-		dht.NodeQueue = append(dht.NodeQueue, addr)
-
-	}
-	client.OnAnnouncePeer = func(node *krpc.Node, message *krpc.Message) {
+		if kind == krpc.NeedAppendQueue {
+			addr := fmt.Sprintf("%s:%d", node.Addr.IP.String(), node.Addr.Port)
+			dht.NodeQueue = append(dht.NodeQueue, addr)
+		}
+	})
+	client.SetOnAnnouncePeer(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnAnnouncePeer]", node)
-	}
-	client.OnGetPeers = func(node *krpc.Node, message *krpc.Message) {
+	})
+	client.SetOnGetPeers(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnGetPeers]", message.A.InfoHash, node.Addr.String())
-	}
-	client.SearchNode = func(infoHash string) []*krpc.Node {
+	})
+	client.SetSearchNode(func(infoHash string) []*krpc.Node {
 		kNodes := make([]*krpc.Node, 0, 8)
 		rNodes := dht.Routing.Neighbouring(infoHash)
 		for _, rNode := range rNodes {
@@ -69,7 +71,10 @@ func NewDHT(config *config.Config) (*DHT, error) {
 			kNodes = append(kNodes, kNode)
 		}
 		return kNodes
-	}
+	})
+	client.SetHandleValue(func(peer *krpc.Peer) {
+		fmt.Println("[get_peers] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
+	})
 
 	return dht, nil
 }

@@ -8,7 +8,7 @@ import (
 
 func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 	node := NewNode(m.A.Id, addr)
-	c.HandleNode(node)
+	c.HandleNode(node, NoNeedAppendQueue)
 
 	msg := &Message{
 		T: m.T,

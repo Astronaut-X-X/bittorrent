@@ -17,7 +17,8 @@ type Client struct {
 	TransactionManager *TransactionManager
 	OnAnnouncePeer     func(*Node, *Message)
 	OnGetPeers         func(*Node, *Message)
-	HandleNode         func(*Node)
+	HandleNode         func(*Node, byte)
+	HandleValue        func(*Peer)
 	SearchNode         func(string) []*Node
 }
 
@@ -95,6 +96,14 @@ func (c *Client) SetOnGetPeers(f func(*Node, *Message)) {
 	c.OnGetPeers = f
 }
 
-func (c *Client) SetHandleNode(f func(*Node)) {
+func (c *Client) SetHandleNode(f func(*Node, byte)) {
 	c.HandleNode = f
+}
+
+func (c *Client) SetSearchNode(f func(string) []*Node) {
+	c.SearchNode = f
+}
+
+func (c *Client) SetHandleValue(f func(*Peer)) {
+	c.HandleValue = f
 }
