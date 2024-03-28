@@ -1,13 +1,16 @@
 package routing
 
-import "time"
+import (
+	"bittorrent/common"
+	"time"
+)
 
 // Bucket a bucket in the routing table contains a peer
 type Bucket struct {
-	Index int       // Index the index in routing table
-	Cap   int       // Cap the capacity of this bucket
-	Len   int       // Len the peer quantity of this bucket
-	Nodes *SyncList // Nodes a list of node links
+	Index int              // Index the index in routing table
+	Cap   int              // Cap the capacity of this bucket
+	Len   int              // Len the peer quantity of this bucket
+	Nodes *common.SyncList // Nodes a list of node links
 }
 
 func NewBucket(index int, size int) *Bucket {
@@ -15,7 +18,7 @@ func NewBucket(index int, size int) *Bucket {
 		Index: index,
 		Cap:   size,
 		Len:   0,
-		Nodes: NewSyncList(),
+		Nodes: common.NewSyncList(),
 	}
 }
 
