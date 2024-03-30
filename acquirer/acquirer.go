@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"sync"
@@ -244,22 +243,19 @@ func (a *Acquirer) readMessage() error {
 				go a.sendRequestPieces(utMetadata, piecesNum)
 
 			case 1:
-				decode, err := bencode.Decode(buf)
-				if err != nil {
-					return err
-				}
-				d := decode.(map[string]interface{})
-				totalSize := d["total_size"].(int64)
-
-				logger.Println("[total_size]", totalSize)
-
-				bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
-				if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
-					return err
-				}
-				writeToFile(bytebuffer)
+				//decode, err := bencode.Decode(buf)
+				//if err != nil {
+				//	return err
+				//}
+				//d := decode.(map[string]interface{})
+				//totalSize := d["total_size"].(int64)
+				//bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
+				//if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
+				//	return err
+				//}
+				//writeToFile(bytebuffer)
 				logger.Println("[readMessage] done")
-				return nil
+				//return nil
 
 			default:
 				continue

@@ -121,8 +121,8 @@ func ReadMessage(r io.Reader) (*Message, error) {
 
 	messageBytes := messageBuf.Bytes()
 
-	//fmt.Println("[ReadMessage] ", string(messageBytes), messageBytes)
-	//logger.Println("[ReadMessage] ", string(messageBytes), messageBytes)
+	fmt.Println("[ReadMessage] ", string(messageBytes), messageBytes)
+	logger.Println("[ReadMessage] ", string(messageBytes), messageBytes)
 
 	m := Message{
 		ID:      messageID(messageBytes[0]),
