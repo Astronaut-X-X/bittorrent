@@ -25,12 +25,14 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		// do nothing
 
 	case find_node:
-		handleNodes(c, m)
+		for _, node := range handleNodes(m) {
+			c.HandleNode(node, NeedAppendQueue)
+		}
 
 	case get_peers:
 		if len(m.R.Nodes) > 0 {
-			nodes := handleNodes(c, m)
-			for _, node := range nodes {
+			for _, node := range handleNodes(m) {
+				c.HandleNode(node, NeedAppendQueue)
 				c.GetPeersContinuous(node.Addr.String(), m.T, transaction.Query.A.InfoHash)
 			}
 			NoNeedDeleteTransaction = true
@@ -52,20 +54,12 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	c.TransactionManager.Delete(transaction)
 }
 
-func handleNodes(c *Client, m *Message) []*Node {
-	nodes := make([]*Node, 0)
-	length := len(m.R.Nodes)
-	for i := 0; i < length; i += 26 {
-		id := m.R.Nodes[i+20 : i+20]
-		data := []byte(m.R.Nodes[i+20 : i+26])
-		addr, err := utils.ParseByteToAddr(data)
-		if err != nil {
-			continue
-		}
-		node := NewNode(id, addr)
-		c.HandleNode(node, NeedAppendQueue)
-		nodes = append(nodes, node)
+func handleNodes(m *Message) []*Node {
+	nodes, err := ParseNodes([]byte(m.R.Nodes))
+	if err != nil {
+		return nil
 	}
+
 	return nodes
 }
 
