@@ -182,11 +182,11 @@ func (a *Acquirer) readHandshake() error {
 		return errors.New("error data first bit")
 	}
 
-	if string(buf[1:lbt]) != BitTorrentProtocol {
+	if string(buf[1:lbt+1]) != BitTorrentProtocol {
 		return errors.New("error BitTorrent protocol data")
 	}
 
-	if string(buf[1+lbt:lbt+9]) != string([]byte{0, 0, 0, 0, 0, 16, 0, 0}) {
+	if string(buf[lbt+1:lbt+9]) != string([]byte{0, 0, 0, 0, 0, 16, 0, 0}) {
 		return errors.New("error data")
 	}
 
