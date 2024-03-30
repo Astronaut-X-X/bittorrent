@@ -100,12 +100,15 @@ func handle(info *PeerInfo) {
 		return
 	}
 	if err = acquirer.readHandshake(); err != nil {
+		logger.Println(err.Error())
 		return
 	}
 	if err = acquirer.sendExtHandshake(); err != nil {
+		logger.Println(err.Error())
 		return
 	}
 	if err = acquirer.readMessage(); err != nil {
+		logger.Println(err.Error())
 		return
 	}
 }
@@ -157,7 +160,7 @@ func (a *Acquirer) sendHandshake() error {
 		return err
 	}
 
-	logger.Println("[Acquirer] sendHandshake done : %v", n)
+	logger.Println("[Acquirer] sendHandshake done ", n)
 	return nil
 }
 
@@ -183,7 +186,7 @@ func (a *Acquirer) readHandshake() error {
 		return errors.New("error BitTorrent protocol data")
 	}
 
-	if string(buf[1+lbt:lbt+9]) != string(make([]byte, 8)) {
+	if string(buf[1+lbt:lbt+9]) != string([]byte{0, 0, 0, 0, 0, 16, 0, 0}) {
 		return errors.New("error data")
 	}
 
