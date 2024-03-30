@@ -41,7 +41,7 @@ func defaultConfig() *Config {
 		TransactionKeepTime:   time.Second * time.Duration(viper.GetInt("transaction-keep-time")),
 		TransactionTickerTime: time.Second * time.Duration(viper.GetInt("transaction-ticker-time")),
 		AcquirerMaxSize:       viper.GetInt("acquirer-max-size"),
-		AcquirerIntervalTime:  time.Second * time.Duration(viper.GetInt("acquirer-transaction-keep-time")),
+		AcquirerIntervalTime:  time.Second * time.Duration(viper.GetInt("acquirer-interval-time")),
 		DatabaseType:          viper.GetString("database-type"),
 		DatabaseFileName:      viper.GetString("database-filename"),
 	}
