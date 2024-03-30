@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -253,11 +254,12 @@ func (a *Acquirer) readMessage() error {
 					}
 					d := decode.(map[string]interface{})
 					totalSize := d["total_size"].(int64)
-					torrentInfo := make([]byte, 0, totalSize)
-					if _, err = io.ReadFull(a.conn, torrentInfo); err != nil {
+					bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
+					if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
 						return err
 					}
-					logger.Println("[readMessage]", string(torrentInfo))
+					writeToFile(bytebuffer)
+					logger.Println("[readMessage] done")
 					return nil
 
 				default:
@@ -294,4 +296,19 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 		}
 		logger.Println("[sendRequestPieces] done ", string(data), data)
 	}
+}
+
+func writeToFile(buffer *bytes.Buffer) {
+	file, err := os.Open(time.Now().String() + ".torrent")
+	if err != nil {
+		return
+	}
+
+	_, err = file.Write(buffer.Bytes())
+	if err != nil {
+		return
+	}
+
+	file.Sync()
+	file.Close()
 }
