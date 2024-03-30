@@ -68,7 +68,7 @@ func ReadHandshake(r io.Reader) (*Handshake, error) {
 	if string(buffer[:20]) != string(prefixBytes) {
 		return nil, errors.New("error handshake prefix")
 	}
-	if buffer[25] != 0x00 {
+	if buffer[25] == 0x00 {
 		return nil, errors.New("peer don't allow extend protocol")
 	}
 
