@@ -243,6 +243,9 @@ func (a *Acquirer) readMessage() error {
 				m := d["m"].(map[string]interface{})
 				utMetadata := m["ut_metadata"].(int64)
 				piecesNum = metadataSize / BlockSize
+				if metadataSize%BlockSize != 0 {
+					piecesNum++
+				}
 				pieces = make([][]byte, piecesNum)
 				go a.sendRequestPieces(utMetadata, piecesNum)
 
@@ -275,7 +278,7 @@ func (a *Acquirer) readMessage() error {
 				//logger.Println("[readMessage]", string(readAll), readAll)
 				//fmt.Println("[readMessage]", string(readAll), readAll)
 
-				if piece == piecesNum {
+				if piece+1 == piecesNum {
 					logger.Println("[readMessage] start")
 
 					buffer := bytes.NewBuffer(nil)
@@ -300,7 +303,7 @@ func (a *Acquirer) readMessage() error {
 }
 
 func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
-	for i := 0; i <= int(piecesNum); i++ {
+	for i := 0; i < int(piecesNum); i++ {
 		reqByte := bencode.Encode(map[string]interface{}{
 			"msg_type": ExMsgRequest,
 			"piece":    i,
