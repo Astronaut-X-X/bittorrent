@@ -207,6 +207,7 @@ func (a *Acquirer) sendExtHandshake() error {
 		},
 	}
 
+	message.Payload = append(message.Payload, byte(ExMsgRequest))
 	message.Payload = bencode.Encode(msg)
 	data := message.Serialize()
 
