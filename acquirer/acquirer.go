@@ -7,6 +7,7 @@ import (
 	"bittorrent/logger"
 	"bittorrent/utils"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -81,7 +82,7 @@ func (m *AcquireManager) run() {
 			logger.Println("[AcquireManager] stop")
 			return
 		case <-ticker.C:
-			fmt.Println("[AcquireManager] run handle")
+			//fmt.Println("[AcquireManager] run handle")
 			if info := m.Pop(); info != nil {
 				go m.handle(info)
 			}
@@ -90,26 +91,26 @@ func (m *AcquireManager) run() {
 }
 
 func handle(info *PeerInfo) {
-	fmt.Println("[handle]", info.InfoHash, " ", info.Ip, " ", info.Port)
+	fmt.Println("[handle]", hex.EncodeToString([]byte(info.InfoHash)), " ", info.Ip, " ", info.Port)
 	acquirer, err := NewAcquirer(info.InfoHash, info.Ip, info.Port)
 	if err != nil {
 		return
 	}
 	defer acquirer.close()
 	if err = acquirer.sendHandshake(); err != nil {
-		logger.Println(err.Error())
+		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.readHandshake(); err != nil {
-		logger.Println(err.Error())
+		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.sendExtHandshake(); err != nil {
-		logger.Println(err.Error())
+		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.readMessage(); err != nil {
-		logger.Println(err.Error())
+		logger.Println("[handle]", err.Error())
 		return
 	}
 }
