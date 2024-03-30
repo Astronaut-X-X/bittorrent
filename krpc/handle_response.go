@@ -7,6 +7,9 @@ import (
 )
 
 func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
+	if m.R == nil || m.R.Id == "" {
+		return
+	}
 	node := NewNode(m.R.Id, addr)
 	c.HandleNode(node, NeedAppendQueue)
 

@@ -7,6 +7,9 @@ import (
 )
 
 func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
+	if m.A == nil || m.A.Id == "" {
+		return
+	}
 	node := NewNode(m.A.Id, addr)
 	c.HandleNode(node, NoNeedAppendQueue)
 
