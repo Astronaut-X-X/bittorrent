@@ -19,10 +19,10 @@ find-node-speed: 1000  # uint millisecond
 expiration-time: 15  # uint minute
 
 # acquirer config
-max-size: 1024
-interval-time: 2 # unit second
+acquirer-max-size: 1024
+acquirer-interval-time: 2 # unit second
 
 # DataBase
-type: "sqlite3"
-file-name: "data.db"
+database-type: "sqlite3"
+database-file-name: "data.db"
 

@@ -18,7 +18,28 @@ const (
 	MsgPiece         messageID = 7
 	MsgCancel        messageID = 8
 	MsgExtended      messageID = 20
+
+	BitTorrentProtocol = "BitTorrent protocol"
 )
+
+type Handshake struct {
+	Prefix   string
+	InfoHash []byte
+	PeerId   []byte
+}
+
+func (h *Handshake) Serialize() []byte {
+	const firstByte = byte(0x13)
+	BitTorrent := []byte(BitTorrentProtocol)
+	ReservedBytes := make([]byte, 8)
+	data := make([]byte, 0, len(BitTorrent)+49)
+	data[0] = firstByte
+	data = append(data, BitTorrent...)
+	data = append(data, ReservedBytes...)
+	data = append(data, h.InfoHash...)
+	data = append(data, h.PeerId...)
+	return data
+}
 
 // Message stores ID and payload of a message
 type Message struct {

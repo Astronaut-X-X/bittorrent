@@ -1,6 +1,7 @@
 package dht
 
 import (
+	"bittorrent/acquirer"
 	_ "bittorrent/logger"
 	"bittorrent/routing"
 	"encoding/hex"
@@ -21,10 +22,11 @@ type DHT struct {
 	Context context.Context
 	Cancel  context.CancelFunc
 
-	NodeId  string
-	Config  *config.Config
-	Client  *krpc.Client
-	Routing routing.IRoutingTable
+	NodeId   string
+	Config   *config.Config
+	Client   *krpc.Client
+	Routing  routing.IRoutingTable
+	Acquirer *acquirer.AcquireManager
 
 	NodeQueue []string
 }
@@ -44,6 +46,8 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		return nil, err
 	}
 	dht.Client = client
+
+	dht.Acquirer = acquirer.NewAcquireManager(ctx, config)
 
 	client.SetHandleNode(func(node *krpc.Node, kind byte) {
 		// Add to routing
@@ -79,6 +83,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 	})
 	client.SetHandleValue(func(peer *krpc.Peer) {
 		fmt.Println("[get_peers] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
+		dht.Acquirer.Push(acquirer.NewPeerInfo(peer.InfoHash, peer.Ip.String(), peer.Port))
 	})
 
 	return dht, nil
