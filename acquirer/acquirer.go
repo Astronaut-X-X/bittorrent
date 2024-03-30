@@ -172,6 +172,10 @@ func (a *Acquirer) sendHandshake() error {
 }
 
 func (a *Acquirer) readHandshake() error {
+	if err := a.conn.SetReadDeadline(time.Now().Add(time.Second * 15)); err != nil {
+		return err
+	}
+
 	_, err := ReadHandshake(a.conn)
 	if err != nil {
 		return err
