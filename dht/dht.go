@@ -90,10 +90,12 @@ func NewDHT(config *config.Config) (*DHT, error) {
 }
 
 func (d *DHT) Run() {
-	go d.sendPrimeNodes()
-	go d.receiving()
+	//go d.sendPrimeNodes()
+	//go d.receiving()
 	//go d.findNode()
-	go d.getPeers()
+	//go d.getPeers()
+	InfoHash := []byte{0x1D, 0x1B, 0x5A, 0xEE, 0x65, 0xBB, 0x74, 0xBF, 0x71, 0x7F, 0x8B, 0x85, 0x74, 0x3D, 0xF6, 0xDD, 0x48, 0x68, 0xCD, 0xD9}
+	go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "54.215.207.56", 7646))
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
