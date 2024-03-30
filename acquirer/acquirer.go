@@ -187,12 +187,12 @@ func (a *Acquirer) readHandshake() error {
 	}
 
 	if string(buf[lbt+1:lbt+9]) != string([]byte{0, 0, 0, 0, 0, 16, 0, 0}) {
-		return errors.New("error data")
-	}
-
-	if string(buf[lbt+9:lbt+29]) != a.infoHash {
 		return errors.New("error reserved bytes")
 	}
+
+	//if string(buf[lbt+9:lbt+29]) != a.infoHash {
+	//	return errors.New("error infoHash bytes")
+	//}
 
 	return nil
 }
