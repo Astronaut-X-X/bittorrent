@@ -11,7 +11,6 @@ import (
 
 type messageID uint8
 type extensionMessageID uint8
-type msgType uint8
 
 const (
 	MsgChoke         messageID = 0
@@ -29,9 +28,9 @@ const (
 	BitTorrentProtocol = "BitTorrent protocol"
 	BlockSize          = 16384
 
-	ExMsgRequest msgType = 0
-	ExMsgData    msgType = 1
-	ExMsgReject  msgType = 2
+	ExMsgRequest = 0
+	ExMsgData    = 1
+	ExMsgReject  = 2
 )
 
 type Handshake struct {
