@@ -82,7 +82,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		return kNodes
 	})
 	client.SetHandleValue(func(peer *krpc.Peer) {
-		fmt.Println("[get_peers] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
+		logger.Println("[get_peers] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
 		dht.Acquirer.Push(acquirer.NewPeerInfo(peer.InfoHash, peer.Ip.String(), peer.Port))
 	})
 
@@ -92,8 +92,8 @@ func NewDHT(config *config.Config) (*DHT, error) {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
-	//go d.findNode()
-	go d.getPeers()
+	go d.findNode()
+	//go d.getPeers()
 
 	//InfoHash := []byte{0x41, 0x67, 0x53, 0xe2, 0x77, 0x54, 0x68, 0x8a, 0xe5, 0xd2, 0xda, 0xef, 0xaa, 0x05, 0xc0, 0x4a, 0x5b, 0x03, 0xa1, 0x37}
 	//go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "195.154.181.225", 55014))
