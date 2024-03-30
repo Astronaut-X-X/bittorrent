@@ -33,7 +33,7 @@ func (h *Handshake) Serialize() []byte {
 	BitTorrent := []byte(BitTorrentProtocol)
 	ReservedBytes := make([]byte, 8)
 	data := make([]byte, 0, len(BitTorrent)+49)
-	data[0] = firstByte
+	data = append(data, firstByte)
 	data = append(data, BitTorrent...)
 	data = append(data, ReservedBytes...)
 	data = append(data, h.InfoHash...)
