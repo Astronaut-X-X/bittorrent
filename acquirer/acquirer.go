@@ -269,8 +269,8 @@ func (a *Acquirer) readMessage() error {
 
 				pieces[piece] = readAll
 
-				logger.Println("[piece]", piece)
-				fmt.Println("[piece]", piece)
+				logger.Println("[piece]", piece, piecesNum)
+				fmt.Println("[piece]", piece, piecesNum)
 
 				logger.Println("[ len(readAll)]", len(readAll))
 				fmt.Println("[ len(readAll)]", len(readAll))
