@@ -100,18 +100,22 @@ func handle(info *PeerInfo) {
 	}
 	defer acquirer.close()
 	if err = acquirer.sendHandshake(); err != nil {
+		fmt.Println("[handle]", err.Error())
 		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.readHandshake(); err != nil {
+		fmt.Println("[handle]", err.Error())
 		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.sendExtHandshake(); err != nil {
+		fmt.Println("[handle]", err.Error())
 		logger.Println("[handle]", err.Error())
 		return
 	}
 	if err = acquirer.readMessage(); err != nil {
+		fmt.Println("[handle]", err.Error())
 		logger.Println("[handle]", err.Error())
 		return
 	}
@@ -172,10 +176,6 @@ func (a *Acquirer) sendHandshake() error {
 }
 
 func (a *Acquirer) readHandshake() error {
-	if err := a.conn.SetReadDeadline(time.Now().Add(time.Second * 15)); err != nil {
-		return err
-	}
-
 	_, err := ReadHandshake(a.conn)
 	if err != nil {
 		return err
