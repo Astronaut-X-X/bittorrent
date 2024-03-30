@@ -45,7 +45,7 @@ func NewAcquireManager(ctx context.Context, config *config.Config) *AcquireManag
 		context:      ctx,
 		queue:        common.NewSyncList(),
 	}
-	manager.run()
+	go manager.run()
 	manager.SetHandle(handle)
 
 	return manager
