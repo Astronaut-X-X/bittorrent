@@ -53,7 +53,8 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 }
 
 func handleNodes(c *Client, m *Message) []*Node {
-	nodes := make([]*Node, 0)
+	nodeMap := make(map[string]*Node, 0)
+
 	length := len(m.R.Nodes)
 	for i := 0; i < length; i += 26 {
 		id := m.R.Nodes[i+20 : i+20]
@@ -63,9 +64,15 @@ func handleNodes(c *Client, m *Message) []*Node {
 			continue
 		}
 		node := NewNode(id, addr)
-		c.HandleNode(node, NeedAppendQueue)
-		nodes = append(nodes, node)
+		nodeMap[node.Id] = node
 	}
+
+	nodes := make([]*Node, 0)
+	for _, node := range nodeMap {
+		nodes = append(nodes, node)
+		c.HandleNode(node, NeedAppendQueue)
+	}
+
 	return nodes
 }
 
