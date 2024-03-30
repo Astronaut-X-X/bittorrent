@@ -270,6 +270,9 @@ out:
 
 				pieces[piece] = readAll
 
+				logger.Println("[readMessage]", string(readAll), readAll)
+				fmt.Println("[readMessage]", string(readAll), readAll)
+
 				if piece == piecesNum {
 					break out
 				}
