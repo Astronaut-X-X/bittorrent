@@ -220,7 +220,7 @@ func (a *Acquirer) sendExtHandshake() error {
 		return err
 	}
 
-	logger.Println("[Acquirer] sendExtHandshake done : ", string(data[:n]))
+	logger.Println("[Acquirer] sendExtHandshake done : ", string(data[:n]), data[:n])
 	return nil
 }
 
@@ -231,7 +231,7 @@ func (a *Acquirer) readMessage() error {
 		return err
 	}
 
-	logger.Println("[Acquirer] readMessage done : %v", string(message.Payload))
+	logger.Println("[Acquirer] readMessage done : %v", string(message.Payload), message.Payload)
 
 	//for {
 	//	switch message.ID {
