@@ -51,7 +51,7 @@ func (h *Handshake) Serialize() []byte {
 }
 
 func ReadHandshake(r io.Reader) (*Handshake, error) {
-	buffer := make([]byte, 68)
+	buffer := make([]byte, 0, 68)
 	if _, err := io.ReadFull(r, buffer); err != nil {
 		return nil, err
 	}
