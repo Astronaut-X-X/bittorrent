@@ -279,6 +279,8 @@ func (a *Acquirer) readMessage() error {
 				//fmt.Println("[readMessage]", string(readAll), readAll)
 
 				if piece == piecesNum {
+					logger.Println("[readMessage] start")
+
 					buffer := bytes.NewBuffer(nil)
 					buffer.Grow(int(metadataSize))
 					for _, piece := range pieces {
