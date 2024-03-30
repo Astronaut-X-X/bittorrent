@@ -105,6 +105,7 @@ func ReadMessage(r io.Reader) (*Message, error) {
 		return nil, err
 	}
 	length := binary.BigEndian.Uint32(lengthBuf.Bytes())
+	fmt.Println("[ReadMessage] length ", length)
 
 	// keep-alive message
 	if length == 0 {
