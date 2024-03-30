@@ -4,6 +4,7 @@ import (
 	"bittorrent/logger"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -57,6 +58,7 @@ func ReadHandshake(r io.Reader) (*Handshake, error) {
 		return nil, err
 	}
 
+	fmt.Println("[ReadHandshake] ", string(buffer), buffer)
 	logger.Println("[ReadHandshake] ", string(buffer), buffer)
 
 	prefixBytes := append([]byte{0x13}, []byte(BitTorrentProtocol)...)
