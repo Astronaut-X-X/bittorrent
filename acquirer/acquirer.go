@@ -208,7 +208,7 @@ func (a *Acquirer) sendExtHandshake() error {
 	}
 
 	message.Payload = append(message.Payload, byte(ExMsgRequest))
-	message.Payload = bencode.Encode(msg)
+	message.Payload = append(message.Payload, bencode.Encode(msg)...)
 	data := message.Serialize()
 
 	if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second + 15)); err != nil {
