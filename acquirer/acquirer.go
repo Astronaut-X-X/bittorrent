@@ -225,13 +225,23 @@ func (a *Acquirer) sendExtHandshake() error {
 }
 
 func (a *Acquirer) readMessage() error {
-	message, err := Read(a.conn)
-	if err != nil {
-		logger.Println("[Read] ", err.Error())
-		return err
-	}
+	timeout := time.After(time.Second * 60)
+	ticker := time.NewTicker(time.Millisecond * 60)
 
-	logger.Println("[Acquirer] readMessage done : %v", string(message.Payload), message.Payload)
+	for {
+		select {
+		case <-timeout:
+			return nil
+		case <-ticker.C:
+			message, err := Read(a.conn)
+			if err != nil {
+				logger.Println("[Read] ", err.Error())
+				return err
+			}
+
+			logger.Println("[Acquirer] readMessage done : %v", string(message.Payload), message.Payload)
+		}
+	}
 
 	//for {
 	//	switch message.ID {
