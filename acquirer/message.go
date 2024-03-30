@@ -100,27 +100,32 @@ func (m *Message) Serialize() []byte {
 }
 
 func ReadMessage(r io.Reader) (*Message, error) {
-	lengthBuf := make([]byte, 4)
-	_, err := io.ReadFull(r, lengthBuf)
+	lengthBuf := bytes.NewBuffer(make([]byte, 0, 4))
+	_, err := io.CopyN(lengthBuf, r, 4)
 	if err != nil {
 		return nil, err
 	}
-	length := binary.BigEndian.Uint32(lengthBuf)
+	length := binary.BigEndian.Uint32(lengthBuf.Bytes())
 
 	// keep-alive message
 	if length == 0 {
 		return nil, nil
 	}
 
-	messageBuf := make([]byte, length)
-	_, err = io.ReadFull(r, messageBuf)
+	messageBuf := bytes.NewBuffer(make([]byte, 0, length))
+	_, err = io.CopyN(messageBuf, r, int64(length))
 	if err != nil {
 		return nil, err
 	}
 
+	messageBytes := messageBuf.Bytes()
+
+	fmt.Println("[ReadMessage] ", string(messageBytes), messageBytes)
+	logger.Println("[ReadMessage] ", string(messageBytes), messageBytes)
+
 	m := Message{
-		ID:      messageID(messageBuf[0]),
-		Payload: messageBuf[1:],
+		ID:      messageID(messageBytes[0]),
+		Payload: messageBytes[1:],
 	}
 
 	return &m, nil
