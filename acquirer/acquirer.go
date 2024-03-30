@@ -117,6 +117,7 @@ func handle(info *PeerInfo) {
 
 type Acquirer struct {
 	conn     net.Conn
+	done     chan struct{}
 	infoHash string
 	peerId   string
 	error    error
@@ -133,6 +134,7 @@ func NewAcquirer(infoHash string, ip string, port int) (*Acquirer, error) {
 	acquirer := &Acquirer{
 		conn:     conn,
 		infoHash: infoHash,
+		done:     make(chan struct{}),
 		peerId:   utils.RandomID(),
 	}
 
@@ -140,6 +142,7 @@ func NewAcquirer(infoHash string, ip string, port int) (*Acquirer, error) {
 }
 
 func (a *Acquirer) close() {
+	a.done <- struct{}{}
 	if a.conn != nil {
 		if err := a.conn.Close(); err != nil {
 			logger.Println("[Acquirer] conn close err: %v", err.Error())
@@ -230,18 +233,21 @@ func (a *Acquirer) readMessage() error {
 	timeout := time.After(time.Second * 60)
 	ticker := time.NewTicker(time.Millisecond * 60)
 
+	buf := make([]byte, 0, 16384)
 	for {
 		select {
 		case <-timeout:
 			return nil
 		case <-ticker.C:
-			message, err := Read(a.conn)
+			n, err := a.conn.Read(buf)
 			if err != nil {
 				logger.Println("[Read] ", err.Error())
 				return err
 			}
 
-			logger.Println("[Acquirer] readMessage done : %v", string(message.Payload), message.Payload)
+			logger.Println("[Acquirer] readMessage done : %v", buf[:n])
+		case <-a.done:
+			return nil
 		}
 	}
 
@@ -252,5 +258,4 @@ func (a *Acquirer) readMessage() error {
 	//
 	//	}
 	//}
-	return nil
 }
