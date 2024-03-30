@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -137,6 +136,7 @@ func NewAcquirer(infoHash string, ip string, port int) (*Acquirer, error) {
 		logger.Println("[Acquirer] tcp connect err: %v", err.Error())
 		return nil, err
 	}
+	conn.(*net.TCPConn).SetReadBuffer(1024 * 1024 * 1)
 
 	acquirer := &Acquirer{
 		conn:     conn,
@@ -220,57 +220,52 @@ func (a *Acquirer) readMessage() error {
 			return err
 		}
 
-		select {
-		case <-time.After(time.Second * 60):
-			return errors.New("error timeout")
-		case <-time.Tick(time.Millisecond * 60):
-			switch message.ID {
-			case MsgExtended:
-				buf := bytes.NewBuffer(message.Payload)
-				extendedID, err := buf.ReadByte()
+		switch message.ID {
+		case MsgExtended:
+			buf := bytes.NewBuffer(message.Payload)
+			extendedID, err := buf.ReadByte()
+			if err != nil {
+				return err
+			}
+			switch extendedID {
+			case 0:
+				decode, err := bencode.Decode(buf)
 				if err != nil {
 					return err
 				}
-				switch extendedID {
-				case 0:
-					decode, err := bencode.Decode(buf)
-					if err != nil {
-						return err
-					}
-					d := decode.(map[string]interface{})
-					metadataSize := d["metadata_size"].(int64)
-					m := d["m"].(map[string]interface{})
-					utMetadata := m["ut_metadata"].(int64)
-					piecesNum := metadataSize / BlockSize
-					if metadataSize%BlockSize != 0 {
-						piecesNum++
-					}
-					go a.sendRequestPieces(utMetadata, piecesNum)
-
-				case 1:
-					decode, err := bencode.Decode(buf)
-					if err != nil {
-						return err
-					}
-					d := decode.(map[string]interface{})
-					totalSize := d["total_size"].(int64)
-
-					logger.Println("[total_size]", totalSize)
-
-					bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
-					if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
-						return err
-					}
-					writeToFile(bytebuffer)
-					logger.Println("[readMessage] done")
-					return nil
-
-				default:
-					continue
+				d := decode.(map[string]interface{})
+				metadataSize := d["metadata_size"].(int64)
+				m := d["m"].(map[string]interface{})
+				utMetadata := m["ut_metadata"].(int64)
+				piecesNum := metadataSize / BlockSize
+				if metadataSize%BlockSize != 0 {
+					piecesNum++
 				}
+				go a.sendRequestPieces(utMetadata, piecesNum)
+
+			case 1:
+				decode, err := bencode.Decode(buf)
+				if err != nil {
+					return err
+				}
+				d := decode.(map[string]interface{})
+				totalSize := d["total_size"].(int64)
+
+				logger.Println("[total_size]", totalSize)
+
+				bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
+				if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
+					return err
+				}
+				writeToFile(bytebuffer)
+				logger.Println("[readMessage] done")
+				return nil
+
 			default:
 				continue
 			}
+		default:
+			continue
 		}
 	}
 }
