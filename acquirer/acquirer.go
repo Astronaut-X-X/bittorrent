@@ -97,6 +97,7 @@ func handle(info *PeerInfo) {
 	}
 	defer acquirer.close()
 	if err = acquirer.sendHandshake(); err != nil {
+		logger.Println(err.Error())
 		return
 	}
 	if err = acquirer.readHandshake(); err != nil {
