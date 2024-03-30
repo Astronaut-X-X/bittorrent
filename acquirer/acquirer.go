@@ -1,6 +1,7 @@
 package acquirer
 
 import (
+	"bittorrent/bencode"
 	"bittorrent/common"
 	"bittorrent/config"
 	"bittorrent/logger"
@@ -101,6 +102,12 @@ func handle(info *PeerInfo) {
 	if err = acquirer.readHandshake(); err != nil {
 		return
 	}
+	if err = acquirer.sendExtHandshake(); err != nil {
+		return
+	}
+	if err = acquirer.readMessage(); err != nil {
+		return
+	}
 }
 
 type Acquirer struct {
@@ -161,7 +168,7 @@ func (a *Acquirer) readHandshake() error {
 		return err
 	}
 
-	logger.Println(buf[:n])
+	logger.Println("[readHandshake] ", buf[:n])
 	lbt := len(BitTorrentProtocol)
 
 	if n < lbt+49 {
@@ -184,5 +191,49 @@ func (a *Acquirer) readHandshake() error {
 		return errors.New("error reserved bytes")
 	}
 
+	return nil
+}
+
+func (a *Acquirer) sendExtHandshake() error {
+	message := Message{}
+	message.ID = MsgExtended
+
+	msg := map[string]interface{}{
+		"m": map[string]interface{}{
+			"ut_metadata": 1,
+		},
+	}
+
+	message.Payload = bencode.Encode(msg)
+	data := message.Serialize()
+
+	if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second + 15)); err != nil {
+		return err
+	}
+
+	n, err := a.conn.Write(data)
+	if err != nil {
+		return err
+	}
+
+	logger.Println("[Acquirer] sendHandshake done : %v", n)
+	return nil
+}
+
+func (a *Acquirer) readMessage() error {
+	message, err := Read(a.conn)
+	if err != nil {
+		return err
+	}
+
+	logger.Println("[Acquirer] readMessage done : %v", string(message.Payload))
+
+	//for {
+	//	switch message.ID {
+	//	case MsgExtended:
+	//	default:
+	//
+	//	}
+	//}
 	return nil
 }
