@@ -219,13 +219,14 @@ func (a *Acquirer) sendExtHandshake() error {
 		return err
 	}
 
-	logger.Println("[Acquirer] sendHandshake done : %v", n)
+	logger.Println("[Acquirer] sendExtHandshake done : ", string(data[:n]))
 	return nil
 }
 
 func (a *Acquirer) readMessage() error {
 	message, err := Read(a.conn)
 	if err != nil {
+		logger.Println("[Read] ", err.Error())
 		return err
 	}
 
