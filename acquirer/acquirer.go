@@ -329,7 +329,7 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 }
 
 func writeToFile(buffer *bytes.Buffer) {
-	file, err := os.Open(time.Now().String() + ".torrent")
+	file, err := os.Open(time.Now().Format("2006-01-02-150405") + ".torrent")
 	if err != nil {
 		logger.Println("[writeToFile]", err.Error())
 		return
