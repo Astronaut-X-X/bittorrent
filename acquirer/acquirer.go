@@ -254,6 +254,9 @@ func (a *Acquirer) readMessage() error {
 					}
 					d := decode.(map[string]interface{})
 					totalSize := d["total_size"].(int64)
+
+					logger.Println("[total_size]", totalSize)
+
 					bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
 					if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
 						return err
@@ -301,20 +304,20 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 func writeToFile(buffer *bytes.Buffer) {
 	file, err := os.Open(time.Now().String() + ".torrent")
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Println("[writeToFile]", err.Error())
 		return
 	}
 
 	_, err = file.Write(buffer.Bytes())
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Println("[writeToFile]", err.Error())
 		return
 	}
 
 	if err := file.Sync(); err != nil {
-		fmt.Println(err.Error())
+		logger.Println("[writeToFile]", err.Error())
 	}
 	if err := file.Close(); err != nil {
-		fmt.Println(err.Error())
+		logger.Println("[writeToFile]", err.Error())
 	}
 }
