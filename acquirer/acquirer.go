@@ -301,14 +301,20 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 func writeToFile(buffer *bytes.Buffer) {
 	file, err := os.Open(time.Now().String() + ".torrent")
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 
 	_, err = file.Write(buffer.Bytes())
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 
-	file.Sync()
-	file.Close()
+	if err := file.Sync(); err != nil {
+		fmt.Println(err.Error())
+	}
+	if err := file.Close(); err != nil {
+		fmt.Println(err.Error())
+	}
 }
