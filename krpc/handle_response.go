@@ -53,7 +53,6 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 }
 
 func handleNodes(c *Client, m *Message) []*Node {
-	// TODO
 	nodes := make([]*Node, 0)
 	length := len(m.R.Nodes)
 	for i := 0; i < length; i += 26 {

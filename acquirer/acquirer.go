@@ -253,7 +253,7 @@ func (a *Acquirer) readMessage() error {
 					if _, err = io.ReadFull(a.conn, torrentInfo); err != nil {
 						return err
 					}
-					fmt.Println(torrentInfo)
+					logger.Println("[readMessage]", string(torrentInfo))
 					return nil
 
 				default:

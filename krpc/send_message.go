@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 
-	"bittorrent/logger"
 	"bittorrent/utils"
 )
 
@@ -19,7 +18,7 @@ func (c *Client) sendMessageAddr(msg *Message, addr string) {
 
 	c.TransactionManager.Store(NewTransaction(msg))
 
-	logger.Println("[SEND]", addr, Print(msg))
+	//logger.Println("[SEND]", addr, Print(msg))
 }
 
 func (c *Client) sendMessageContinuous(msg *Message, addr string) {
@@ -31,7 +30,7 @@ func (c *Client) sendMessageContinuous(msg *Message, addr string) {
 
 	c.sendMessage(msg, udpAddr)
 
-	logger.Println("[SEND]", addr, Print(msg))
+	//logger.Println("[SEND]", addr, Print(msg))
 }
 
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
