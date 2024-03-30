@@ -9,7 +9,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"sync"
@@ -213,6 +215,11 @@ func (a *Acquirer) sendExtHandshake() error {
 
 func (a *Acquirer) readMessage() error {
 
+	var metadataSize int64 = 0
+	var piecesNum int64 = 0
+	var pieces [][]byte
+
+out:
 	for {
 		message, err := ReadMessage(a.conn)
 		if err != nil {
@@ -233,29 +240,39 @@ func (a *Acquirer) readMessage() error {
 					return err
 				}
 				d := decode.(map[string]interface{})
-				metadataSize := d["metadata_size"].(int64)
+				metadataSize = d["metadata_size"].(int64)
 				m := d["m"].(map[string]interface{})
 				utMetadata := m["ut_metadata"].(int64)
-				piecesNum := metadataSize / BlockSize
+				piecesNum = metadataSize / BlockSize
 				if metadataSize%BlockSize != 0 {
 					piecesNum++
 				}
+				pieces = make([][]byte, piecesNum)
 				go a.sendRequestPieces(utMetadata, piecesNum)
 
 			case 1:
-				//decode, err := bencode.Decode(buf)
-				//if err != nil {
-				//	return err
-				//}
-				//d := decode.(map[string]interface{})
-				//totalSize := d["total_size"].(int64)
-				//bytebuffer := bytes.NewBuffer(make([]byte, 0, totalSize))
-				//if _, err = io.CopyN(bytebuffer, a.conn, totalSize); err != nil {
-				//	return err
-				//}
-				//writeToFile(bytebuffer)
-				logger.Println("[readMessage] done")
-				//return nil
+				decode, err := bencode.Decode(buf)
+				if err != nil {
+					return err
+				}
+				d := decode.(map[string]interface{})
+				msgType := d["msg_type"].(int64)
+				piece := d["piece"].(int64)
+				totalSize := d["total_size"].(int64)
+				if msgType != ExMsgData || totalSize != metadataSize {
+					return errors.New("[readMessage] error data")
+				}
+
+				readAll, err := io.ReadAll(buf)
+				if err != nil {
+					return err
+				}
+
+				pieces[piece] = readAll
+
+				if piece == piecesNum {
+					break out
+				}
 
 			default:
 				continue
@@ -264,6 +281,16 @@ func (a *Acquirer) readMessage() error {
 			continue
 		}
 	}
+
+	buffer := bytes.NewBuffer(nil)
+	buffer.Grow(int(metadataSize))
+	for _, piece := range pieces {
+		buffer.Write(piece)
+	}
+
+	writeToFile(buffer)
+	logger.Println("[readMessage] done")
+	return nil
 }
 
 func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {

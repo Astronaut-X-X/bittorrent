@@ -25,8 +25,8 @@ const (
 	MsgPort          messageID = 9
 	MsgExtended      messageID = 20
 
-	BitTorrentProtocol = "BitTorrent protocol"
-	BlockSize          = 16384
+	BitTorrentProtocol       = "BitTorrent protocol"
+	BlockSize          int64 = 16384
 
 	ExMsgRequest = 0
 	ExMsgData    = 1
