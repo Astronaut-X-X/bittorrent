@@ -1,6 +1,7 @@
 package acquirer
 
 import (
+	"bittorrent/logger"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -55,6 +56,8 @@ func ReadHandshake(r io.Reader) (*Handshake, error) {
 	if _, err := io.ReadFull(r, buffer); err != nil {
 		return nil, err
 	}
+
+	logger.Println("[ReadHandshake] ", string(buffer), buffer)
 
 	prefixBytes := append([]byte{0x13}, []byte(BitTorrentProtocol)...)
 	if string(buffer[:20]) != string(prefixBytes) {
