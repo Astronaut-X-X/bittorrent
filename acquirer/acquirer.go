@@ -219,7 +219,6 @@ func (a *Acquirer) readMessage() error {
 	var piecesNum int64 = 0
 	var pieces [][]byte
 
-out:
 	for {
 		message, err := ReadMessage(a.conn)
 		if err != nil {
@@ -270,11 +269,25 @@ out:
 
 				pieces[piece] = readAll
 
-				logger.Println("[readMessage]", string(readAll), readAll)
-				fmt.Println("[readMessage]", string(readAll), readAll)
+				logger.Println("[piece]", piece)
+				fmt.Println("[piece]", piece)
+
+				logger.Println("[ len(readAll)]", len(readAll))
+				fmt.Println("[ len(readAll)]", len(readAll))
+
+				//logger.Println("[readMessage]", string(readAll), readAll)
+				//fmt.Println("[readMessage]", string(readAll), readAll)
 
 				if piece == piecesNum {
-					break out
+					buffer := bytes.NewBuffer(nil)
+					buffer.Grow(int(metadataSize))
+					for _, piece := range pieces {
+						buffer.Write(piece)
+					}
+
+					writeToFile(buffer)
+					logger.Println("[readMessage] done")
+					return nil
 				}
 
 			default:
@@ -285,15 +298,6 @@ out:
 		}
 	}
 
-	buffer := bytes.NewBuffer(nil)
-	buffer.Grow(int(metadataSize))
-	for _, piece := range pieces {
-		buffer.Write(piece)
-	}
-
-	writeToFile(buffer)
-	logger.Println("[readMessage] done")
-	return nil
 }
 
 func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
