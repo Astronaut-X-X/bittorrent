@@ -6,10 +6,12 @@ import (
 	"bittorrent/config"
 	"bittorrent/logger"
 	"bittorrent/utils"
+	"bytes"
 	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"time"
@@ -170,34 +172,10 @@ func (a *Acquirer) sendHandshake() error {
 }
 
 func (a *Acquirer) readHandshake() error {
-	buf := make([]byte, 1024)
-	n, err := a.conn.Read(buf)
+	_, err := ReadHandshake(a.conn)
 	if err != nil {
 		return err
 	}
-
-	logger.Println("[readHandshake] ", buf[:n])
-	lbt := len(BitTorrentProtocol)
-
-	if n < lbt+49 {
-		return errors.New("error data length")
-	}
-
-	if buf[0] != byte(0x13) {
-		return errors.New("error data first bit")
-	}
-
-	if string(buf[1:lbt+1]) != BitTorrentProtocol {
-		return errors.New("error BitTorrent protocol data")
-	}
-
-	if string(buf[lbt+1:lbt+9]) != string([]byte{0, 0, 0, 0, 0, 16, 0, 0}) {
-		return errors.New("error reserved bytes")
-	}
-
-	//if string(buf[lbt+9:lbt+29]) != a.infoHash {
-	//	return errors.New("error infoHash bytes")
-	//}
 
 	return nil
 }
@@ -212,7 +190,7 @@ func (a *Acquirer) sendExtHandshake() error {
 		},
 	}
 
-	message.Payload = append(message.Payload, byte(ExMsgRequest))
+	message.Payload = append(message.Payload, byte(0))
 	message.Payload = append(message.Payload, bencode.Encode(msg)...)
 	data := message.Serialize()
 
@@ -230,32 +208,86 @@ func (a *Acquirer) sendExtHandshake() error {
 }
 
 func (a *Acquirer) readMessage() error {
-	timeout := time.After(time.Second * 60)
-	ticker := time.NewTicker(time.Millisecond * 60)
 
-	buf := make([]byte, 0, 16384)
 	for {
-		select {
-		case <-timeout:
-			return nil
-		case <-ticker.C:
-			n, err := a.conn.Read(buf)
-			if err != nil {
-				logger.Println("[Read] ", err.Error())
-				return err
-			}
+		message, err := ReadMessage(a.conn)
+		if err != nil {
+			return err
+		}
 
-			logger.Println("[Acquirer] readMessage done : %v", buf[:n])
-		case <-a.done:
-			return nil
+		select {
+		case <-time.After(time.Second * 60):
+			return errors.New("error timeout")
+		case <-time.Tick(time.Millisecond * 60):
+			switch message.ID {
+			case MsgExtended:
+				buf := bytes.NewBuffer(message.Payload)
+				extendedID, err := buf.ReadByte()
+				if err != nil {
+					return err
+				}
+				switch extendedID {
+				case 0:
+					decode, err := bencode.Decode(buf)
+					if err != nil {
+						return err
+					}
+					d := decode.(map[string]interface{})
+					metadataSize := d["metadata_size"].(int64)
+					m := d["m"].(map[string]interface{})
+					utMetadata := m["ut_metadata"].(int64)
+					piecesNum := metadataSize / BlockSize
+					if metadataSize%BlockSize != 0 {
+						piecesNum++
+					}
+					go a.sendRequestPieces(utMetadata, piecesNum)
+
+				case 1:
+					decode, err := bencode.Decode(buf)
+					if err != nil {
+						return err
+					}
+					d := decode.(map[string]interface{})
+					totalSize := d["total_size"].(int64)
+					torrentInfo := make([]byte, 0, totalSize)
+					if _, err = io.ReadFull(a.conn, torrentInfo); err != nil {
+						return err
+					}
+					fmt.Println(torrentInfo)
+					return nil
+
+				default:
+					continue
+				}
+			default:
+				continue
+			}
 		}
 	}
+}
 
-	//for {
-	//	switch message.ID {
-	//	case MsgExtended:
-	//	default:
-	//
-	//	}
-	//}
+func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
+	for i := 0; i < int(piecesNum); i++ {
+		reqByte := bencode.Encode(map[string]interface{}{
+			"msg_type": ExMsgRequest,
+			"piece":    i,
+		})
+
+		msg := Message{}
+		msg.ID = MsgExtended
+		msg.Payload = append(msg.Payload, byte(utMetadata))
+		msg.Payload = append(msg.Payload, reqByte...)
+		data := msg.Serialize()
+
+		if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second * 15)); err != nil {
+			logger.Println("[sendRequestPieces] err", err.Error())
+			break
+		}
+		_, err := a.conn.Write(data)
+		if err != nil {
+			logger.Println("[sendRequestPieces] err", err.Error())
+			break
+		}
+		logger.Println("[sendRequestPieces] done ", string(data), data)
+	}
 }
