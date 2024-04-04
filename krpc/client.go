@@ -92,6 +92,7 @@ func (c *Client) Sending() {
 			}
 			c.TransactionManager.Store(NewTransaction(queueMessage.Message))
 			//logger.Println("[SEND]", addr, Print(msg))
+			fmt.Println("[Sending]", " | ", queueMessage.Node.Addr, " | ", queueMessage.Message.Y)
 		}
 	}
 }
