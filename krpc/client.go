@@ -2,7 +2,6 @@ package krpc
 
 import (
 	"bittorrent/config"
-	"bittorrent/logger"
 	"context"
 	"fmt"
 	"net"
@@ -104,8 +103,8 @@ func handleMessage(c *Client, data []byte, addr *net.UDPAddr) {
 		return
 	}
 
-	logger.Println("[RECEIVE]", fmt.Sprintf("%s:%v", addr.IP.String(), addr.Port), Print(m))
-	fmt.Println("[RECEIVE]", " | ", fmt.Sprintf("%s:%v", addr.IP.String(), addr.Port), " | ", Print(m))
+	//logger.Println("[RECEIVE]", fmt.Sprintf("%s:%v", addr.IP.String(), addr.Port), Print(m))
+	//fmt.Println("[RECEIVE]", " | ", fmt.Sprintf("%s:%v", addr.IP.String(), addr.Port), " | ", Print(m))
 
 	switch m.Y {
 	case "q":
