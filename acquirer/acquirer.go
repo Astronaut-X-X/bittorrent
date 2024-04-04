@@ -102,23 +102,23 @@ func handle(info *PeerInfo) {
 	}
 	defer acquirer.close()
 	if err = acquirer.sendHandshake(); err != nil {
-		fmt.Println("[handle]", err.Error())
-		logger.Println("[handle]", err.Error())
+		fmt.Println("[handle] sendHandshake", err.Error())
+		logger.Println("[handle] sendHandshake", err.Error())
 		return
 	}
 	if err = acquirer.readHandshake(); err != nil {
-		fmt.Println("[handle]", err.Error())
-		logger.Println("[handle]", err.Error())
+		fmt.Println("[handle] readHandshake", err.Error())
+		logger.Println("[handle] readHandshake", err.Error())
 		return
 	}
 	if err = acquirer.sendExtHandshake(); err != nil {
-		fmt.Println("[handle]", err.Error())
-		logger.Println("[handle]", err.Error())
+		fmt.Println("[handle] sendExtHandshake", err.Error())
+		logger.Println("[handle] sendExtHandshake", err.Error())
 		return
 	}
 	if err = acquirer.readMessage(); err != nil {
-		fmt.Println("[handle]", err.Error())
-		logger.Println("[handle]", err.Error())
+		fmt.Println("[handle] readMessage", err.Error())
+		logger.Println("[handle] readMessage", err.Error())
 		return
 	}
 }
@@ -276,6 +276,7 @@ func (a *Acquirer) readMessage() error {
 				}
 
 				pieces[piece] = readAll
+				logger.Println("[pieces[", piece, "]] ", string(readAll))
 
 				if piece+1 == piecesNum {
 					logger.Println("[readMessage] start")

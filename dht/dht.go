@@ -79,7 +79,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		return kNodes
 	})
 	client.SetHandleValue(func(peer *krpc.Peer) {
-		logger.Println("[get_peers] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
+		logger.Println("[HandleValue] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
 		dht.Acquirer.Push(acquirer.NewPeerInfo(peer.InfoHash, peer.Ip.String(), peer.Port))
 	})
 
