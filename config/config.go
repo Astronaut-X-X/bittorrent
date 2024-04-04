@@ -10,7 +10,10 @@ import (
 type Config struct {
 	Address               string
 	ReadBufferSize        int
+	SendQueueSize         int
+	NodeQueueSize         int
 	PrimeNodes            []string
+	SendMessageSpeed      time.Duration
 	FindNodeSpeed         time.Duration
 	ExpirationTime        time.Duration
 	TransactionKeepTime   time.Duration
@@ -35,7 +38,10 @@ func defaultConfig() *Config {
 	return &Config{
 		Address:               viper.GetString("address"),
 		ReadBufferSize:        viper.GetInt("read-buffer-size"),
+		SendQueueSize:         viper.GetInt("send-queue-size"),
+		NodeQueueSize:         viper.GetInt("node-queue-size"),
 		PrimeNodes:            viper.GetStringSlice("prime-nodes"),
+		SendMessageSpeed:      time.Millisecond * time.Duration(viper.GetInt("send-message-speed")),
 		FindNodeSpeed:         time.Millisecond * time.Duration(viper.GetInt("find-node-speed")),
 		ExpirationTime:        time.Minute * time.Duration(viper.GetInt("expiration-time")),
 		TransactionKeepTime:   time.Second * time.Duration(viper.GetInt("transaction-keep-time")),

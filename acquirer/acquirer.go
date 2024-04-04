@@ -269,15 +269,6 @@ func (a *Acquirer) readMessage() error {
 
 				pieces[piece] = readAll
 
-				logger.Println("[piece]", piece, piecesNum)
-				fmt.Println("[piece]", piece, piecesNum)
-
-				logger.Println("[ len(readAll)]", len(readAll))
-				fmt.Println("[ len(readAll)]", len(readAll))
-
-				//logger.Println("[readMessage]", string(readAll), readAll)
-				//fmt.Println("[readMessage]", string(readAll), readAll)
-
 				if piece+1 == piecesNum {
 					logger.Println("[readMessage] start")
 

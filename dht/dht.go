@@ -5,6 +5,7 @@ import (
 	_ "bittorrent/logger"
 	"bittorrent/routing"
 	"encoding/hex"
+	"net"
 
 	"bittorrent/config"
 	"bittorrent/krpc"
@@ -15,7 +16,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 type DHT struct {
@@ -27,8 +27,6 @@ type DHT struct {
 	Client   *krpc.Client
 	Routing  routing.IRoutingTable
 	Acquirer *acquirer.AcquireManager
-
-	NodeQueue []string
 }
 
 func NewDHT(config *config.Config) (*DHT, error) {
@@ -54,8 +52,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		dht.Routing.Insert(node.Id, node.Addr.IP.String(), node.Addr.Port)
 		// Add to queue
 		if kind == krpc.NeedAppendQueue {
-			addr := fmt.Sprintf("%s:%d", node.Addr.IP.String(), node.Addr.Port)
-			dht.NodeQueue = append(dht.NodeQueue, addr)
+			dht.Client.FindNode(node, dht.NodeId)
 		}
 	})
 	client.SetOnAnnouncePeer(func(node *krpc.Node, message *krpc.Message) {
@@ -66,7 +63,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		infoHash := message.A.InfoHash
 		nodes := dht.Routing.Neighbouring(infoHash)
 		for _, node := range nodes {
-			client.GetPeers(node.Addr.String(), infoHash)
+			client.GetPeers(krpc.NewNode(node.NodeId, node.Addr), infoHash)
 		}
 	})
 	client.SetSearchNode(func(infoHash string) []*krpc.Node {
@@ -94,6 +91,7 @@ func (d *DHT) Run() {
 	//go d.receiving()
 	//go d.findNode()
 	//go d.getPeers()
+	go d.sending()
 
 	InfoHash := []byte{0xfc, 0xec, 0xd1, 0x66, 0xb1, 0x7d, 0x66, 0xfd, 0x68, 0xd6, 0x36, 0xad, 0x63, 0x87, 0xe7, 0x14, 0xb3, 0xbf, 0x88, 0x64}
 	go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "109.134.92.25", 6881))
@@ -112,22 +110,21 @@ func (d *DHT) Stop() {
 
 	if d.Client != nil {
 		if err := d.Client.Close(); err != nil {
+			fmt.Println(err.Error())
 			return
 		}
 	}
-	if logger.File != nil {
-		if err := logger.File.Sync(); err != nil {
-			return
-		}
-		if err := logger.File.Close(); err != nil {
-			return
-		}
-	}
+
+	logger.Close()
 }
 
 func (d *DHT) sendPrimeNodes() {
 	for _, addr := range d.Config.PrimeNodes {
-		d.Client.Ping(addr)
+		udpAddr, err := net.ResolveUDPAddr("udp", addr)
+		if err != nil {
+			continue
+		}
+		d.Client.Ping(krpc.NewNode("", udpAddr))
 	}
 }
 
@@ -135,27 +132,6 @@ func (d *DHT) receiving() {
 	d.Client.Receiving()
 }
 
-func (d *DHT) findNode() {
-	t := time.NewTicker(d.Config.FindNodeSpeed)
-	defer t.Stop()
-	for {
-		select {
-		case <-d.Context.Done():
-		case <-t.C:
-			if len(d.NodeQueue) == 0 {
-				d.NodeQueue = append(d.NodeQueue, d.Config.PrimeNodes...)
-			}
-			node := d.NodeQueue[0]
-			d.NodeQueue = d.NodeQueue[1:]
-			d.Client.FindNode(node, d.NodeId)
-		}
-	}
-}
-
-func (d *DHT) getPeers() {
-	InfoHash := []byte{0x1D, 0x1B, 0x5A, 0xEE, 0x65, 0xBB, 0x74, 0xBF, 0x71, 0x7F, 0x8B, 0x85, 0x74, 0x3D, 0xF6, 0xDD, 0x48, 0x68, 0xCD, 0xD9}
-
-	for _, addr := range d.Config.PrimeNodes {
-		d.Client.GetPeers(addr, string(InfoHash))
-	}
+func (d *DHT) sending() {
+	d.Client.Sending()
 }

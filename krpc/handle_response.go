@@ -17,8 +17,7 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	if !ok {
 		return
 	}
-
-	NoNeedDeleteTransaction := false
+	c.TransactionManager.Delete(transaction)
 
 	switch transaction.Query.Q {
 	case ping:
@@ -33,9 +32,8 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		if len(m.R.Nodes) > 0 {
 			for _, node := range handleNodes(m) {
 				c.HandleNode(node, NeedAppendQueue)
-				c.GetPeersContinuous(node.Addr.String(), m.T, transaction.Query.A.InfoHash)
+				c.GetPeersContinuous(node, m.T, transaction.Query.A.InfoHash)
 			}
-			NoNeedDeleteTransaction = true
 		}
 		if len(m.R.Values) > 0 {
 			handleValues(c, m, transaction.Query)
@@ -43,15 +41,9 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 
 	case announce_peer:
 		// do nothing
-
 	}
 
 	//transaction.Response <- true
-	if NoNeedDeleteTransaction {
-		return
-	}
-
-	c.TransactionManager.Delete(transaction)
 }
 
 func handleNodes(m *Message) []*Node {

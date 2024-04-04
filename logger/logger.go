@@ -23,3 +23,15 @@ func init() {
 func Println(v ...any) {
 	Logger.Println(v)
 }
+
+func Close() {
+	if File == nil {
+		return
+	}
+	if err := File.Sync(); err != nil {
+		fmt.Println(err.Error())
+	}
+	if err := File.Close(); err != nil {
+		fmt.Println(err.Error())
+	}
+}

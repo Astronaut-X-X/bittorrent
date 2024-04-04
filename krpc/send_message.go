@@ -7,32 +7,6 @@ import (
 	"bittorrent/utils"
 )
 
-func (c *Client) sendMessageAddr(msg *Message, addr string) {
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	c.sendMessage(msg, udpAddr)
-
-	c.TransactionManager.Store(NewTransaction(msg))
-
-	//logger.Println("[SEND]", addr, Print(msg))
-}
-
-func (c *Client) sendMessageContinuous(msg *Message, addr string) {
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	c.sendMessage(msg, udpAddr)
-
-	//logger.Println("[SEND]", addr, Print(msg))
-}
-
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 	msgByte := EncodeMessage(msg)
 
@@ -42,7 +16,7 @@ func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 	}
 }
 
-func (c *Client) Ping(addr string) {
+func (c *Client) Ping(node *Node) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -52,10 +26,10 @@ func (c *Client) Ping(addr string) {
 		},
 	}
 
-	c.sendMessageAddr(msg, addr)
+	c.SendQueue <- NewQueueMessage(msg, node)
 }
 
-func (c *Client) FindNode(addr string, target string) {
+func (c *Client) FindNode(node *Node, target string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -66,10 +40,10 @@ func (c *Client) FindNode(addr string, target string) {
 		},
 	}
 
-	c.sendMessageAddr(msg, addr)
+	c.SendQueue <- NewQueueMessage(msg, node)
 }
 
-func (c *Client) GetPeers(addr string, infoHash string) {
+func (c *Client) GetPeers(node *Node, infoHash string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -80,10 +54,10 @@ func (c *Client) GetPeers(addr string, infoHash string) {
 		},
 	}
 
-	c.sendMessageAddr(msg, addr)
+	c.SendQueue <- NewQueueMessage(msg, node)
 }
 
-func (c *Client) GetPeersContinuous(addr string, T string, infoHash string) {
+func (c *Client) GetPeersContinuous(node *Node, T string, infoHash string) {
 	msg := &Message{
 		T: T,
 		Y: q,
@@ -94,11 +68,11 @@ func (c *Client) GetPeersContinuous(addr string, T string, infoHash string) {
 		},
 	}
 
-	c.sendMessageContinuous(msg, addr)
+	c.SendQueue <- NewQueueMessage(msg, node)
 }
 
 // AnnouncePeer TODO
-func (c *Client) AnnouncePeer(addr string, infoHash string) {
+func (c *Client) AnnouncePeer(node *Node, infoHash string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -112,5 +86,5 @@ func (c *Client) AnnouncePeer(addr string, infoHash string) {
 		},
 	}
 
-	c.sendMessageAddr(msg, addr)
+	c.SendQueue <- NewQueueMessage(msg, node)
 }
