@@ -8,6 +8,7 @@ import (
 	"bittorrent/utils"
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -137,7 +138,10 @@ func NewAcquirer(infoHash string, ip string, port int) (*Acquirer, error) {
 		logger.Println("[Acquirer] tcp connect err: %v", err.Error())
 		return nil, err
 	}
-	conn.(*net.TCPConn).SetReadBuffer(1024 * 1024 * 1)
+	if err = conn.(*net.TCPConn).SetReadBuffer(1024 * 1024 * 1); err != nil {
+		logger.Println("[Acquirer] tcp SetReadBuffer err: %v", err.Error())
+		return nil, err
+	}
 
 	acquirer := &Acquirer{
 		conn:     conn,
@@ -220,6 +224,10 @@ func (a *Acquirer) readMessage() error {
 	var pieces [][]byte
 
 	for {
+		if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second + 15)); err != nil {
+			return err
+		}
+
 		message, err := ReadMessage(a.conn)
 		if err != nil {
 			return err
@@ -271,14 +279,18 @@ func (a *Acquirer) readMessage() error {
 
 				if piece+1 == piecesNum {
 					logger.Println("[readMessage] start")
+					metadataInfo := bytes.Join(pieces, nil)
 
-					buffer := bytes.NewBuffer(nil)
-					buffer.Grow(int(metadataSize))
-					for _, piece := range pieces {
-						buffer.Write(piece)
+					logger.Println("[readMessage] metadataInfo ", string(metadataInfo))
+
+					writeToFile(metadataInfo)
+
+					info := sha1.Sum(metadataInfo)
+					if !bytes.Equal([]byte(a.infoHash), info[:]) {
+						logger.Println("[readMessage] infoHash err")
+						return nil
 					}
 
-					writeToFile(buffer)
 					logger.Println("[readMessage] done")
 					return nil
 				}
@@ -319,14 +331,14 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 	}
 }
 
-func writeToFile(buffer *bytes.Buffer) {
+func writeToFile(content []byte) {
 	file, err := os.Create(time.Now().Format("2006-01-02-150405") + utils.RandomT() + ".torrent")
 	if err != nil {
 		logger.Println("[writeToFile]", err.Error())
 		return
 	}
 
-	_, err = file.Write(buffer.Bytes())
+	_, err = file.Write(content)
 	if err != nil {
 		logger.Println("[writeToFile]", err.Error())
 		return
