@@ -6,6 +6,9 @@ import (
 	"bittorrent/routing"
 	"encoding/hex"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"bittorrent/config"
 	"bittorrent/krpc"
@@ -13,9 +16,6 @@ import (
 	"bittorrent/utils"
 	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type DHT struct {
@@ -87,15 +87,13 @@ func NewDHT(config *config.Config) (*DHT, error) {
 }
 
 func (d *DHT) Run() {
-	//go d.sendPrimeNodes()
-	//go d.receiving()
-	//go d.findNode()
-	//go d.getPeers()
+	go d.sendPrimeNodes()
+	go d.receiving()
 	go d.sending()
 
-	InfoHash := []byte{0xfc, 0xec, 0xd1, 0x66, 0xb1, 0x7d, 0x66, 0xfd, 0x68, 0xd6, 0x36, 0xad, 0x63, 0x87, 0xe7, 0x14, 0xb3, 0xbf, 0x88, 0x64}
-	go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "109.134.92.25", 6881))
-
+	//InfoHash := []byte{0xfc, 0xec, 0xd1, 0x66, 0xb1, 0x7d, 0x66, 0xfd, 0x68, 0xd6, 0x36, 0xad, 0x63, 0x87, 0xe7, 0x14, 0xb3, 0xbf, 0x88, 0x64}
+	//go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "109.134.92.25", 6881))
+	//
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
