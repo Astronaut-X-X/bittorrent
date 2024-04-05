@@ -59,7 +59,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		fmt.Println("[OnAnnouncePeer]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
 	})
 	client.SetOnGetPeers(func(node *krpc.Node, message *krpc.Message) {
-		fmt.Println("[OnGetPeers]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
+		fmt.Println("[OnGetPeers]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String(), "[Client] SendQueue", len(client.SendQueue))
 		infoHash := message.A.InfoHash
 		nodes := dht.Routing.Neighbouring(infoHash)
 		for _, node := range nodes {
