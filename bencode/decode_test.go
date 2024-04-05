@@ -21,6 +21,7 @@ func TestDecode(t *testing.T) {
 		{"1", args{r: bytes.NewBuffer([]byte("5:hello"))}, "hello", false},
 		{"2", args{r: bytes.NewBuffer([]byte("li100e5:helloe"))}, []interface{}{int64(100), "hello"}, false},
 		{"3", args{r: bytes.NewBuffer([]byte("d5:helloi100ee"))}, map[string]interface{}{"hello": int64(100)}, false},
+		{"3", args{r: bytes.NewBuffer([]byte("d5:helloi100eefdsaljgnfdkl"))}, map[string]interface{}{"hello": int64(100)}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

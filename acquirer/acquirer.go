@@ -12,7 +12,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"sync"
@@ -95,6 +94,11 @@ func (m *AcquireManager) run() {
 }
 
 func handle(info *PeerInfo) {
+	row := DataStorage.Get(info.InfoHash)
+	if row != nil {
+		return
+	}
+
 	fmt.Println("[handle]", hex.EncodeToString([]byte(info.InfoHash)), " ", info.Ip, " ", info.Port)
 	acquirer, err := NewAcquirer(info.InfoHash, info.Ip, info.Port)
 	if err != nil {
@@ -270,13 +274,8 @@ func (a *Acquirer) readMessage() error {
 					return errors.New("[readMessage] error data")
 				}
 
-				readAll, err := io.ReadAll(buf)
-				if err != nil {
-					return err
-				}
-
-				pieces[piece] = readAll
-				logger.Println("[pieces[", piece, "]] ", string(readAll))
+				l := len(bencode.Encode(decode)) + 1
+				pieces[piece] = message.Payload[l:]
 
 				if piece+1 == piecesNum {
 					logger.Println("[readMessage] start")
@@ -284,13 +283,17 @@ func (a *Acquirer) readMessage() error {
 
 					logger.Println("[readMessage] metadataInfo ", string(metadataInfo))
 
-					writeToFile(metadataInfo)
-
 					info := sha1.Sum(metadataInfo)
 					if !bytes.Equal([]byte(a.infoHash), info[:]) {
 						logger.Println("[readMessage] infoHash err")
 						return nil
 					}
+
+					writeToFile(hex.EncodeToString([]byte(a.infoHash)), metadataInfo)
+					DataStorage.Put(&DBMetaInfo{InfoHash: a.infoHash})
+					//if metadataInfo, err := bencode.Decode(bytes.NewBuffer(metadataInfo)); err == nil {
+					//	fmt.Println(metadataInfo)
+					//}
 
 					logger.Println("[readMessage] done")
 					return nil
@@ -332,8 +335,8 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 	}
 }
 
-func writeToFile(content []byte) {
-	file, err := os.Create(time.Now().Format("2006-01-02-150405") + utils.RandomT() + ".torrent")
+func writeToFile(infoHash string, content []byte) {
+	file, err := os.Create(infoHash + ".torrent")
 	if err != nil {
 		logger.Println("[writeToFile]", err.Error())
 		return

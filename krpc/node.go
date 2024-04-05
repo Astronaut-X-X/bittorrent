@@ -7,11 +7,6 @@ import (
 	"net"
 )
 
-const (
-	NoNeedAppendQueue = iota
-	NeedAppendQueue   = iota
-)
-
 type Node struct {
 	Id   string
 	Addr *net.UDPAddr

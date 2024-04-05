@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"bittorrent/config"
 	"bittorrent/krpc"
@@ -22,11 +23,12 @@ type DHT struct {
 	Context context.Context
 	Cancel  context.CancelFunc
 
-	NodeId   string
-	Config   *config.Config
-	Client   *krpc.Client
-	Routing  routing.IRoutingTable
-	Acquirer *acquirer.AcquireManager
+	NodeId    string
+	Config    *config.Config
+	Client    *krpc.Client
+	Routing   routing.IRoutingTable
+	Acquirer  *acquirer.AcquireManager
+	NodeQueue []*krpc.Node
 }
 
 func NewDHT(config *config.Config) (*DHT, error) {
@@ -47,13 +49,12 @@ func NewDHT(config *config.Config) (*DHT, error) {
 
 	dht.Acquirer = acquirer.NewAcquireManager(ctx, config)
 
-	client.SetHandleNode(func(node *krpc.Node, kind byte) {
+	client.SetHandleNode(func(node *krpc.Node) {
 		// Add to routing
 		dht.Routing.Insert(node.Id, node.Addr.IP.String(), node.Addr.Port)
 		// Add to queue
-		if kind == krpc.NeedAppendQueue {
-			dht.Client.FindNode(node, dht.NodeId)
-		}
+		dht.Client.FindNode(node, dht.NodeId)
+		dht.NodeQueue = append(dht.NodeQueue, node)
 	})
 	client.SetOnAnnouncePeer(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnAnnouncePeer]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
@@ -89,6 +90,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 func (d *DHT) Run() {
 	go d.sendPrimeNodes()
 	go d.receiving()
+	go d.findNodes()
 
 	//InfoHash := []byte{0xfc, 0xec, 0xd1, 0x66, 0xb1, 0x7d, 0x66, 0xfd, 0x68, 0xd6, 0x36, 0xad, 0x63, 0x87, 0xe7, 0x14, 0xb3, 0xbf, 0x88, 0x64}
 	//go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "109.134.92.25", 6881))
@@ -127,4 +129,27 @@ func (d *DHT) sendPrimeNodes() {
 
 func (d *DHT) receiving() {
 	d.Client.Receiving()
+}
+
+func (d *DHT) findNodes() {
+	t := time.NewTicker(d.Config.FindNodeSpeed)
+	defer t.Stop()
+	for {
+		select {
+		case <-d.Context.Done():
+		case <-t.C:
+			if len(d.NodeQueue) == 0 {
+				for _, addr := range d.Config.PrimeNodes {
+					udpAddr, err := net.ResolveUDPAddr("udp", addr)
+					if err != nil {
+						continue
+					}
+					d.NodeQueue = append(d.NodeQueue, &krpc.Node{Addr: udpAddr})
+				}
+			}
+			node := d.NodeQueue[0]
+			d.NodeQueue = d.NodeQueue[1:]
+			d.Client.FindNode(node, d.NodeId)
+		}
+	}
 }

@@ -11,7 +11,7 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		return
 	}
 	node := NewNode(m.R.Id, addr)
-	c.HandleNode(node, NeedAppendQueue)
+	c.HandleNode(node)
 
 	transaction, ok := c.TransactionManager.Load(m.T)
 	if !ok {
@@ -25,13 +25,13 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 
 	case find_node:
 		for _, node := range handleNodes(m) {
-			c.HandleNode(node, NeedAppendQueue)
+			c.HandleNode(node)
 		}
 
 	case get_peers:
 		if len(m.R.Nodes) > 0 {
 			for _, node := range handleNodes(m) {
-				c.HandleNode(node, NeedAppendQueue)
+				c.HandleNode(node)
 				c.GetPeersContinuous(node, m.T, transaction.Query.A.InfoHash)
 			}
 		}

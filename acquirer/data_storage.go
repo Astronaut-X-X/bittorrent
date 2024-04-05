@@ -38,7 +38,7 @@ func (s *SqliteStorage) Close() {
 }
 
 func (s *SqliteStorage) init() {
-	const SQL = "CREATE TABLE IF NOT EXISTS metainfo (id TEXT PRIMARY KEY,infohash TEXT, metainfo TEXT)"
+	const SQL = "CREATE TABLE IF NOT EXISTS metainfo (id INTEGER PRIMARY KEY AUTOINCREMENT,infohash TEXT, metainfo TEXT)"
 	_, err := s.db.Exec(SQL)
 	if err != nil {
 		panic(err.Error())
@@ -46,10 +46,10 @@ func (s *SqliteStorage) init() {
 }
 
 func (s *SqliteStorage) Get(infoHash string) *DBMetaInfo {
-	const SQL = "SELECT id, infohash, metainfo FROM users WHERE infohash = ?"
+	const SQL = "SELECT id, infohash, metainfo FROM metainfo WHERE infohash = ?"
 	info := DBMetaInfo{}
 
-	if err := s.db.QueryRow(SQL, infoHash).Scan(&info.Id, &info.InfoHash, &info.MetaInfo); err != nil {
+	if err := s.db.QueryRow(SQL, infoHash).Scan(&info.Id, &info.InfoHash, &info.Metadata); err != nil {
 		fmt.Println(err)
 		return nil
 	}
@@ -58,7 +58,7 @@ func (s *SqliteStorage) Get(infoHash string) *DBMetaInfo {
 }
 
 func (s *SqliteStorage) Put(info *DBMetaInfo) {
-	const SQl = "INSERT INTO metainfo(id, infohash, metainfo) values(?,?,?)"
+	const SQl = "INSERT INTO metainfo(infohash, metainfo) values(?,?)"
 
 	stmt, err := s.db.Prepare(SQl)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *SqliteStorage) Put(info *DBMetaInfo) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(info.Id, info.InfoHash, info.MetaInfo)
+	_, err = stmt.Exec(info.InfoHash, info.Metadata)
 	if err != nil {
 		fmt.Println(err)
 		return
