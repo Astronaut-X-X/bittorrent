@@ -169,11 +169,13 @@ func (a *Acquirer) sendHandshake() error {
 	data := handshake.Serialize()
 
 	if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second + 15)); err != nil {
+		logger.Println("[sendHandshake] SetWriteDeadline", err.Error())
 		return err
 	}
 
 	n, err := a.conn.Write(data)
 	if err != nil {
+		logger.Println("[sendHandshake] Write", err.Error())
 		return err
 	}
 
@@ -183,11 +185,7 @@ func (a *Acquirer) sendHandshake() error {
 
 func (a *Acquirer) readHandshake() error {
 	_, err := ReadHandshake(a.conn)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (a *Acquirer) sendExtHandshake() error {
@@ -205,11 +203,13 @@ func (a *Acquirer) sendExtHandshake() error {
 	data := message.Serialize()
 
 	if err := a.conn.SetWriteDeadline(time.Now().Add(time.Second + 15)); err != nil {
+		logger.Println("[sendExtHandshake] SetWriteDeadline", err.Error())
 		return err
 	}
 
 	n, err := a.conn.Write(data)
 	if err != nil {
+		logger.Println("[sendExtHandshake] Write", err.Error())
 		return err
 	}
 
