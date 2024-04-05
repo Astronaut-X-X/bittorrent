@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 )
 
 type Client struct {
@@ -16,7 +15,6 @@ type Client struct {
 	BufferSize         int
 	Config             *config.Config
 	TransactionManager *TransactionManager
-	SendQueue          chan *QueueMessage
 	OnAnnouncePeer     func(*Node, *Message)
 	OnGetPeers         func(*Node, *Message)
 	HandleNode         func(*Node, byte)
@@ -42,7 +40,6 @@ func NewClient(ctx context.Context, localId string, config *config.Config) (*Cli
 		Config:             config,
 		BufferSize:         config.ReadBufferSize,
 		TransactionManager: NewTransactionManager(config),
-		SendQueue:          make(chan *QueueMessage, config.SendQueueSize),
 	}
 
 	return cli, err
@@ -69,29 +66,6 @@ func (c *Client) Receiving() {
 				return
 			}
 			handleMessage(c, buffer[:n], addr)
-		}
-	}
-}
-
-func (c *Client) Sending() {
-	ticker := time.NewTicker(c.Config.SendMessageSpeed)
-
-	for {
-		select {
-		case <-c.context.Done():
-		case <-ticker.C:
-			if len(c.SendQueue) < 0 {
-				break
-			}
-			queueMessage := <-c.SendQueue
-			msgByte := EncodeMessage(queueMessage.Message)
-			if _, err := c.WriteToUDP(msgByte, queueMessage.Node.Addr); err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			c.TransactionManager.Store(NewTransaction(queueMessage.Message))
-			//logger.Println("[SEND]", addr, Print(msg))
-			//fmt.Println("[Sending]", " | ", queueMessage.Node.Addr, " | ", Print(queueMessage.Message))
 		}
 	}
 }

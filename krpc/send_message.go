@@ -26,7 +26,7 @@ func (c *Client) Ping(node *Node) {
 		},
 	}
 
-	c.SendQueue <- NewQueueMessage(msg, node)
+	c.sendMessage(msg, node.Addr)
 }
 
 func (c *Client) FindNode(node *Node, target string) {
@@ -40,7 +40,7 @@ func (c *Client) FindNode(node *Node, target string) {
 		},
 	}
 
-	c.SendQueue <- NewQueueMessage(msg, node)
+	c.sendMessage(msg, node.Addr)
 }
 
 func (c *Client) GetPeers(node *Node, infoHash string) {
@@ -54,7 +54,7 @@ func (c *Client) GetPeers(node *Node, infoHash string) {
 		},
 	}
 
-	c.SendQueue <- NewQueueMessage(msg, node)
+	c.sendMessage(msg, node.Addr)
 }
 
 func (c *Client) GetPeersContinuous(node *Node, T string, infoHash string) {
@@ -68,7 +68,7 @@ func (c *Client) GetPeersContinuous(node *Node, T string, infoHash string) {
 		},
 	}
 
-	c.SendQueue <- NewQueueMessage(msg, node)
+	c.sendMessage(msg, node.Addr)
 }
 
 // AnnouncePeer TODO
@@ -86,5 +86,5 @@ func (c *Client) AnnouncePeer(node *Node, infoHash string) {
 		},
 	}
 
-	c.SendQueue <- NewQueueMessage(msg, node)
+	c.sendMessage(msg, node.Addr)
 }
