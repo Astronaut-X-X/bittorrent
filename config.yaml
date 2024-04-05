@@ -7,7 +7,7 @@ send-queue-size: 1024
 node-queue-size: 1024
 
 # KRPC config
-send-message-speed: 60 # unit millisecond
+send-message-speed: 10 # unit millisecond
 prime-nodes:
   - "router.bittorrent.com:6881"
   - "router.utorrent.com:6881"
