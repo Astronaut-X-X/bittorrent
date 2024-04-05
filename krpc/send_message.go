@@ -14,6 +14,8 @@ func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 		fmt.Println(err.Error())
 		return
 	}
+
+	c.TransactionManager.Store(NewTransaction(msg))
 }
 
 func (c *Client) Ping(node *Node) {
