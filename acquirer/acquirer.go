@@ -99,7 +99,8 @@ func handle(info *PeerInfo) {
 		return
 	}
 
-	fmt.Println("[handle]", hex.EncodeToString([]byte(info.InfoHash)), " ", info.Ip, " ", info.Port)
+	//fmt.Println("[handle]", hex.EncodeToString([]byte(info.InfoHash)), " ", info.Ip, " ", info.Port)
+
 	acquirer, err := NewAcquirer(info.InfoHash, info.Ip, info.Port)
 	if err != nil {
 		return
@@ -217,7 +218,8 @@ func (a *Acquirer) sendExtHandshake() error {
 		return err
 	}
 
-	logger.Println("[Acquirer] sendExtHandshake done : ", string(data[:n]), data[:n])
+	//logger.Println("[Acquirer] sendExtHandshake done : ", string(data[:n]), data[:n])
+	logger.Println("[Acquirer] sendExtHandshake done", n)
 	return nil
 }
 
@@ -281,7 +283,7 @@ func (a *Acquirer) readMessage() error {
 					logger.Println("[readMessage] start")
 					metadataInfo := bytes.Join(pieces, nil)
 
-					logger.Println("[readMessage] metadataInfo ", string(metadataInfo))
+					//logger.Println("[readMessage] metadataInfo ", string(metadataInfo))
 
 					info := sha1.Sum(metadataInfo)
 					if !bytes.Equal([]byte(a.infoHash), info[:]) {
@@ -331,7 +333,7 @@ func (a *Acquirer) sendRequestPieces(utMetadata int64, piecesNum int64) {
 			logger.Println("[sendRequestPieces] err", err.Error())
 			break
 		}
-		logger.Println("[sendRequestPieces] done ", string(data), data)
+		logger.Println("[sendRequestPieces] done ")
 	}
 }
 

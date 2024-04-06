@@ -58,6 +58,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 	})
 	client.SetOnAnnouncePeer(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnAnnouncePeer]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
+		// TODO
 	})
 	client.SetOnGetPeers(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnGetPeers]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
@@ -82,7 +83,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		return kNodes
 	})
 	client.SetHandleValue(func(peer *krpc.Peer) {
-		logger.Println("[HandleValue] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
+		//logger.Println("[HandleValue] values: ", peer.Ip, ":", peer.Port, "|", hex.EncodeToString([]byte(peer.InfoHash)))
 		dht.Acquirer.Push(acquirer.NewPeerInfo(peer.InfoHash, peer.Ip.String(), peer.Port))
 	})
 
@@ -94,9 +95,6 @@ func (d *DHT) Run() {
 	go d.receiving()
 	go d.findNodes()
 
-	//InfoHash := []byte{0xfc, 0xec, 0xd1, 0x66, 0xb1, 0x7d, 0x66, 0xfd, 0x68, 0xd6, 0x36, 0xad, 0x63, 0x87, 0xe7, 0x14, 0xb3, 0xbf, 0x88, 0x64}
-	//go d.Acquirer.Push(acquirer.NewPeerInfo(string(InfoHash), "109.134.92.25", 6881))
-	//
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 

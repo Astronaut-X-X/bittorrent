@@ -1,6 +1,7 @@
 package acquirer
 
 import (
+	"bittorrent/logger"
 	"database/sql"
 	"fmt"
 
@@ -50,7 +51,7 @@ func (s *SqliteStorage) Get(infoHash string) *DBMetaInfo {
 	info := DBMetaInfo{}
 
 	if err := s.db.QueryRow(SQL, infoHash).Scan(&info.Id, &info.InfoHash, &info.Metadata); err != nil {
-		fmt.Println(err)
+		logger.Println("[SqliteStorage] [Get]", err.Error())
 		return nil
 	}
 

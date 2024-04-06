@@ -1,11 +1,9 @@
 package acquirer
 
 import (
-	"bittorrent/logger"
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -60,8 +58,8 @@ func ReadHandshake(r io.Reader) (*Handshake, error) {
 
 	buffer := bytesBuffer.Bytes()
 
-	fmt.Println("[ReadHandshake] ", string(buffer), buffer)
-	logger.Println("[ReadHandshake] ", string(buffer), buffer)
+	//fmt.Println("[ReadHandshake] ", string(buffer), buffer)
+	//logger.Println("[ReadHandshake] ", string(buffer), buffer)
 
 	prefixBytes := append([]byte{0x13}, []byte(BitTorrentProtocol)...)
 	if string(buffer[:20]) != string(prefixBytes) {
@@ -105,8 +103,8 @@ func ReadMessage(r io.Reader) (*Message, error) {
 		return nil, err
 	}
 	length := binary.BigEndian.Uint32(lengthBuf.Bytes())
-	logger.Println("[ReadMessage] length ", length, "================================")
-	logger.Println("[ReadMessage] length ", length, "================================")
+	//logger.Println("[ReadMessage] length ", length, "================================")
+	//fmt.Println("[ReadMessage] length ", length, "================================")
 
 	// keep-alive message
 	if length == 0 {
