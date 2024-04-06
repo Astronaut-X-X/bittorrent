@@ -176,7 +176,12 @@ func mapToR(rMap map[string]interface{}) *R {
 		R.Token = rMap["token"].(string)
 	}
 	if rMap["values"] != nil {
-		R.Values = rMap["values"].([]interface{})
+		if values, ok := rMap["values"].([]interface{}); ok {
+			R.Values = values
+		}
+		if values, ok := rMap["values"].(string); ok {
+			R.Values = []interface{}{values}
+		}
 	}
 	return R
 }
