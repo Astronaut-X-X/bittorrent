@@ -63,9 +63,11 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		fmt.Println("[OnGetPeers]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
 		infoHash := message.A.InfoHash
 		nodes := dht.Routing.Neighbouring(infoHash)
-		for _, node := range nodes {
-			client.GetPeersContinuous(krpc.NewNode(node.NodeId, node.Addr), message.T, infoHash)
+		kNodes := make([]*krpc.Node, len(nodes))
+		for _, node_ := range nodes {
+			kNodes = append(kNodes, krpc.NewNode(node_.NodeId, node_.Addr))
 		}
+		client.GetPeers(kNodes, infoHash)
 	})
 	client.SetSearchNode(func(infoHash string) []*krpc.Node {
 		kNodes := make([]*krpc.Node, 0, 8)

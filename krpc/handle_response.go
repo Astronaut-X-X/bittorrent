@@ -29,9 +29,9 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		if len(m.R.Nodes) > 0 {
 			for _, node := range handleNodes(m) {
 				c.HandleNode(node)
-
-				c.GetPeersContinuous(node, m.T, transaction.Query.A.InfoHash)
+				transaction.NodeQueue.Push(node)
 			}
+			c.GetPeersContinuous(transaction.NodeQueue, transaction.Query.A.InfoHash)
 		}
 		if len(m.R.Values) > 0 {
 			handleValues(c, m, transaction.Query)

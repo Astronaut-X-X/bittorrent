@@ -82,12 +82,20 @@ func (n *NodeQueue) Push(node *Node) {
 	n.queue.PushBack(node)
 }
 
+func (n *NodeQueue) PushNodes(nodes []*Node) {
+	for _, node := range nodes {
+		n.Push(node)
+	}
+}
+
 func (n *NodeQueue) Pop() *Node {
 	if n.queue.Len() == 0 {
 		return nil
 	}
 
-	return n.queue.Front().Value.(*Node)
+	elem := n.queue.Front()
+	n.queue.Remove(elem)
+	return elem.Value.(*Node)
 }
 
 func (n *NodeQueue) Len() int {

@@ -1,20 +1,22 @@
 package krpc
 
 import (
+	"bittorrent/logger"
+	"bittorrent/utils"
 	"fmt"
 	"net"
-
-	"bittorrent/utils"
 )
 
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 	msgByte := EncodeMessage(msg)
-
 	if _, err := c.WriteToUDP(msgByte, addr); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
+}
 
+func (c *Client) sendAndStore(msg *Message, addr *net.UDPAddr) {
+	c.sendMessage(msg, addr)
 	c.TransactionManager.Store(NewTransaction(msg))
 }
 
@@ -28,7 +30,7 @@ func (c *Client) Ping(node *Node) {
 		},
 	}
 
-	c.sendMessage(msg, node.Addr)
+	c.sendAndStore(msg, node.Addr)
 }
 
 func (c *Client) FindNode(node *Node, target string) {
@@ -42,10 +44,10 @@ func (c *Client) FindNode(node *Node, target string) {
 		},
 	}
 
-	c.sendMessage(msg, node.Addr)
+	c.sendAndStore(msg, node.Addr)
 }
 
-func (c *Client) GetPeers(node *Node, infoHash string) {
+func (c *Client) GetPeers(nodes []*Node, infoHash string) {
 	msg := &Message{
 		T: utils.RandomT(),
 		Y: q,
@@ -56,12 +58,21 @@ func (c *Client) GetPeers(node *Node, infoHash string) {
 		},
 	}
 
+	if len(nodes) == 0 {
+		logger.Println("[GetPeers] nodes empty")
+		return
+	}
+	node := nodes[0]
 	c.sendMessage(msg, node.Addr)
+
+	transaction := NewTransaction(msg)
+	transaction.NodeQueue.PushNodes(nodes[1:])
+	c.TransactionManager.Store(transaction)
 }
 
-func (c *Client) GetPeersContinuous(node *Node, T string, infoHash string) {
+func (c *Client) GetPeersContinuous(queue *NodeQueue, infoHash string) {
 	msg := &Message{
-		T: T,
+		T: utils.RandomT(),
 		Y: q,
 		Q: get_peers,
 		A: &A{
@@ -70,7 +81,16 @@ func (c *Client) GetPeersContinuous(node *Node, T string, infoHash string) {
 		},
 	}
 
+	if queue.Len() == 0 {
+		logger.Println("[GetPeers] nodes empty")
+		return
+	}
+	node := queue.Pop()
 	c.sendMessage(msg, node.Addr)
+
+	transaction := NewTransaction(msg)
+	transaction.NodeQueue = queue
+	c.TransactionManager.Store(transaction)
 }
 
 // AnnouncePeer TODO
@@ -88,5 +108,5 @@ func (c *Client) AnnouncePeer(node *Node, infoHash string) {
 		},
 	}
 
-	c.sendMessage(msg, node.Addr)
+	c.sendAndStore(msg, node.Addr)
 }

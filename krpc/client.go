@@ -34,13 +34,13 @@ func NewClient(ctx context.Context, localId string, config *config.Config) (*Cli
 	}
 
 	cli := &Client{
-		context:            ctx,
-		Conn:               conn,
-		LocalId:            localId,
-		Config:             config,
-		BufferSize:         config.ReadBufferSize,
-		TransactionManager: NewTransactionManager(config),
+		context:    ctx,
+		Conn:       conn,
+		LocalId:    localId,
+		Config:     config,
+		BufferSize: config.ReadBufferSize,
 	}
+	cli.TransactionManager = NewTransactionManager(cli, config)
 
 	return cli, err
 }
