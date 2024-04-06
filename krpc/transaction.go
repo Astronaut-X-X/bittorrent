@@ -49,26 +49,35 @@ func (m *TransactionManager) Delete(t *Transaction) {
 }
 
 func (m *TransactionManager) clearTransaction() {
+	transactions := make([]*Transaction, 0)
+
 	m.transactionMap.Range(func(key, value any) bool {
 		transaction := value.(*Transaction)
 		if transaction.Time.Add(m.keepTime).After(time.Now()) {
 			return true
 		}
 
-		if transaction.NodeQueue.Len() == 0 {
-			logger.Println("[clearTransaction] clear ", transaction.Query.T)
-			m.transactionMap.Delete(key)
-			return true
+		if transaction.NodeQueue.Len() != 0 {
+			transactions = append(transactions, transaction)
 		}
 
-		m.Resend(transaction)
+		logger.Println("[clearTransaction] clear ", transaction.Query.T)
+		m.transactionMap.Delete(key)
 		return true
 	})
+
+	m.ResendTransactions(transactions)
 	m.timer.Reset(m.tickerTime)
 }
 
 func (m *TransactionManager) Close() {
 	m.timer.Stop()
+}
+
+func (m *TransactionManager) ResendTransactions(transactions []*Transaction) {
+	for _, transaction := range transactions {
+		m.Resend(transaction)
+	}
 }
 
 func (m *TransactionManager) Resend(transaction *Transaction) {
@@ -80,7 +89,7 @@ func (m *TransactionManager) Resend(transaction *Transaction) {
 		infoHash := transaction.Query.A.InfoHash
 		m.client.GetPeersContinuous(transaction.NodeQueue, infoHash)
 	default:
-		m.Delete(transaction)
+
 	}
 }
 
