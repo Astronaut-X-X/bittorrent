@@ -28,7 +28,7 @@ type DHT struct {
 	Client    *krpc.Client
 	Routing   routing.IRoutingTable
 	Acquirer  *acquirer.AcquireManager
-	NodeQueue []*krpc.Node
+	NodeQueue *krpc.NodeQueue
 }
 
 func NewDHT(config *config.Config) (*DHT, error) {
@@ -39,6 +39,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 	dht.Context, dht.Cancel = ctx, cancelFunc
 	dht.Config = config
 	dht.NodeId = nodeId
+	dht.NodeQueue = krpc.NewNodeQueue(1024 * 32)
 
 	dht.Routing = routing.NewRoutingTable(ctx, nodeId, config.ExpirationTime)
 	client, err := krpc.NewClient(ctx, nodeId, config)
@@ -53,8 +54,7 @@ func NewDHT(config *config.Config) (*DHT, error) {
 		// Add to routing
 		dht.Routing.Insert(node.Id, node.Addr.IP.String(), node.Addr.Port)
 		// Add to queue
-		dht.Client.FindNode(node, dht.NodeId)
-		dht.NodeQueue = append(dht.NodeQueue, node)
+		dht.NodeQueue.Push(node)
 	})
 	client.SetOnAnnouncePeer(func(node *krpc.Node, message *krpc.Message) {
 		fmt.Println("[OnAnnouncePeer]", hex.EncodeToString([]byte(message.A.InfoHash)), node.Addr.String())
@@ -138,17 +138,16 @@ func (d *DHT) findNodes() {
 		select {
 		case <-d.Context.Done():
 		case <-t.C:
-			if len(d.NodeQueue) == 0 {
+			if d.NodeQueue.Len() == 0 {
 				for _, addr := range d.Config.PrimeNodes {
 					udpAddr, err := net.ResolveUDPAddr("udp", addr)
 					if err != nil {
 						continue
 					}
-					d.NodeQueue = append(d.NodeQueue, &krpc.Node{Addr: udpAddr})
+					d.NodeQueue.Push(krpc.NewNode("", udpAddr))
 				}
 			}
-			node := d.NodeQueue[0]
-			d.NodeQueue = d.NodeQueue[1:]
+			node := d.NodeQueue.Pop()
 			d.Client.FindNode(node, d.NodeId)
 		}
 	}

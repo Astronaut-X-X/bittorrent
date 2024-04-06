@@ -10,14 +10,11 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	if m.R == nil || m.R.Id == "" {
 		return
 	}
-	node := NewNode(m.R.Id, addr)
-	c.HandleNode(node)
 
 	transaction, ok := c.TransactionManager.Load(m.T)
 	if !ok {
 		return
 	}
-	c.TransactionManager.Delete(transaction)
 
 	switch transaction.Query.Q {
 	case ping:
@@ -32,6 +29,7 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 		if len(m.R.Nodes) > 0 {
 			for _, node := range handleNodes(m) {
 				c.HandleNode(node)
+
 				c.GetPeersContinuous(node, m.T, transaction.Query.A.InfoHash)
 			}
 		}
@@ -44,6 +42,7 @@ func handleResponse(c *Client, m *Message, addr *net.UDPAddr) {
 	}
 
 	//transaction.Response <- true
+	c.TransactionManager.Delete(transaction)
 }
 
 func handleNodes(m *Message) []*Node {

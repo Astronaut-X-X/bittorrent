@@ -15,10 +15,11 @@ type TransactionManager struct {
 
 type Transaction struct {
 	Query        *Message
-	Node         []*Node
+	NodeQueue    *NodeQueue
 	ResponseData []byte
 	Response     chan bool
 	Time         time.Time
+	Timer        time.Timer
 }
 
 func NewTransactionManager(config *config.Config) *TransactionManager {
@@ -35,7 +36,7 @@ func NewTransactionManager(config *config.Config) *TransactionManager {
 func NewTransaction(query *Message) *Transaction {
 	return &Transaction{
 		Query:        query,
-		Node:         make([]*Node, 0),
+		NodeQueue:    NewNodeQueue(16),
 		ResponseData: nil,
 		Response:     make(chan bool, 1),
 	}

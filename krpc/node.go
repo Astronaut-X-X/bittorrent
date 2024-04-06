@@ -1,6 +1,7 @@
 package krpc
 
 import (
+	"bittorrent/common"
 	"bittorrent/utils"
 	"errors"
 	"fmt"
@@ -59,4 +60,36 @@ func ParseNodes(data []byte) ([]*Node, error) {
 	}
 
 	return nodes, nil
+}
+
+type NodeQueue struct {
+	size  int
+	queue *common.SyncList
+}
+
+func NewNodeQueue(size int) *NodeQueue {
+	return &NodeQueue{
+		size:  size,
+		queue: common.NewSyncList(),
+	}
+}
+
+func (n *NodeQueue) Push(node *Node) {
+	if n.queue.Len() > n.size {
+		return
+	}
+
+	n.queue.PushBack(node)
+}
+
+func (n *NodeQueue) Pop() *Node {
+	if n.queue.Len() == 0 {
+		return nil
+	}
+
+	return n.queue.Front().Value.(*Node)
+}
+
+func (n *NodeQueue) Len() int {
+	return n.queue.Len()
 }

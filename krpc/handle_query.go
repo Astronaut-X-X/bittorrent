@@ -11,6 +11,7 @@ func handleQuery(c *Client, m *Message, addr *net.UDPAddr) {
 		return
 	}
 	node := NewNode(m.A.Id, addr)
+	c.HandleNode(node)
 
 	msg := &Message{
 		T: m.T,
