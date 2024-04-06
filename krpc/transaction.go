@@ -84,6 +84,15 @@ func (m *TransactionManager) Resend(transaction *Transaction) {
 	}
 }
 
+func (m *TransactionManager) Size() int {
+	count := 0
+	m.transactionMap.Range(func(key, value interface{}) bool {
+		count++
+		return true
+	})
+	return count
+}
+
 type Transaction struct {
 	Query        *Message
 	NodeQueue    *NodeQueue
