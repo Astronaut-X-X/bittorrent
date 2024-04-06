@@ -8,10 +8,12 @@ import (
 )
 
 func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
-	if c.TransactionManager.Size() > 1024*10 {
+	size := c.TransactionManager.Size()
+	if size > 1024*10 {
 		logger.Println("[sendAndStore] out size")
 		return
 	}
+	logger.Println("[sendAndStore]  size", size)
 
 	msgByte := EncodeMessage(msg)
 	if _, err := c.WriteToUDP(msgByte, addr); err != nil {
