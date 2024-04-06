@@ -14,7 +14,7 @@ func (c *Client) sendMessage(msg *Message, addr *net.UDPAddr) {
 		return
 	}
 
-	logger.Println("[sendMessage]", addr.String(), "|", Print(msg))
+	//logger.Println("[sendMessage]", addr.String(), "|", Print(msg))
 
 	msgByte := EncodeMessage(msg)
 	if _, err := c.WriteToUDP(msgByte, addr); err != nil {
