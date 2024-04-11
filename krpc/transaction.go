@@ -116,5 +116,6 @@ func NewTransaction(query *Message) *Transaction {
 		NodeQueue:    NewNodeQueue(16),
 		ResponseData: nil,
 		Response:     make(chan bool, 1),
+		Time:         time.Now(),
 	}
 }
